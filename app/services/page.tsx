@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/navbar";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/flatpickr.css";
+
 
 const servicesData = [
     { name: "Facial", homePrice: 499, salonPrice: 399 },
@@ -14,7 +17,8 @@ export default function Services() {
     const [selectedServices, setSelectedServices] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [mode, setMode] = useState<"home" | "salon">("home");
-    const [selectedSlot, setSelectedSlot] = useState("");
+    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+    const [selectedTime, setSelectedTime] = useState<Date | null>(null);
     const [address, setAddress] = useState("");
 
     const toggleService = (service: any) => {
@@ -23,6 +27,21 @@ export default function Services() {
             setSelectedServices(selectedServices.filter((s) => s.name !== service.name));
         } else {
             setSelectedServices([...selectedServices, service]);
+        }
+    };
+
+    // Toggle selection for bridal packages
+    const toggleBridalPackage = (pkg: any) => {
+        const exists = selectedServices.find(s => s.name === pkg.name);
+        if (exists) {
+            // Deselect if already selected
+            setSelectedServices(selectedServices.filter(s => s.name !== pkg.name));
+        } else {
+            // Otherwise, add it
+            setSelectedServices([
+                ...selectedServices,
+                { name: pkg.name, homePrice: pkg.price, salonPrice: pkg.price }
+            ]);
         }
     };
 
@@ -153,14 +172,13 @@ export default function Services() {
                                 includes: ["Airbrush Makeup", "Full Skin Prep", "Hairstyling", "Draping"],
                             },
                         ].map((pkg, i) => {
-                            const isSelected = selectedServices.find((s) => s.name === pkg.name);
+                            const isSelected = selectedServices.find(s => s.name === pkg.name);
                             return (
                                 <motion.div
                                     key={i}
-                                    onClick={() => {
-                                        setSelectedServices([{ name: pkg.name, homePrice: pkg.price, salonPrice: pkg.price }]);
-                                    }}
-                                    className={`p-6 rounded-2xl text-center border cursor-pointer relative transition ${isSelected ? "border-[#D4AF37] bg-[#fffaf0]" : "border-[#2D2D2D]"}`}
+                                    onClick={() => toggleBridalPackage(pkg)}
+                                    className={`p-6 rounded-2xl text-center border cursor-pointer relative transition ${isSelected ? "border-[#D4AF37] bg-[#fffaf0]" : "border-[#2D2D2D]"
+                                        }`}
                                     whileHover={{ scale: 1.05, boxShadow: "0 10px 20px rgba(0,0,0,0.15)" }}
                                     whileTap={{ scale: 0.95 }}
                                     initial={{ opacity: 0, y: 20 }}
@@ -168,11 +186,11 @@ export default function Services() {
                                     transition={{ duration: 0.4, delay: i * 0.1 }}
                                 >
                                     {/* Check Indicator */}
-                                    <div className={`absolute top-3 right-3 w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? "bg-[#D4AF37] border-[#D4AF37]" : "border-gray-400"
-                                        }`}>
-                                        {isSelected && (
-                                            <span className="text-white text-xs">✓</span>
-                                        )}
+                                    <div
+                                        className={`absolute top-3 right-3 w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? "bg-[#D4AF37] border-[#D4AF37]" : "border-gray-400"
+                                            }`}
+                                    >
+                                        {isSelected && <span className="text-white text-xs">✓</span>}
                                     </div>
 
                                     <h2 className="text-xl font-semibold">{pkg.name}</h2>
@@ -278,17 +296,26 @@ export default function Services() {
                             className="w-full border p-2 mb-3 rounded"
                         />
 
-                        <input
-                        placeholder="Select Date"
-                            type="date"
+                        <Flatpickr
+                            value={selectedSlot || ""}
+                            onChange={(date) => setSelectedSlot(date[0]?.toISOString().split('T')[0] || null)}
+                            placeholder="Select Date"
+                            options={{ dateFormat: "Y-m-d" }}
                             className="w-full border p-2 mb-3 rounded"
                         />
 
                         {/* Time / Slots */}
                         {mode === "home" ? (
-                            <input
+                            <Flatpickr
+                                value={selectedTime || ""}
+                                onChange={(time) => setSelectedTime(time[0])}
                                 placeholder="Select Time"
-                                type="time"
+                                options={{
+                                    enableTime: true,
+                                    noCalendar: true,
+                                    dateFormat: "H:i",
+                                    time_24hr: true,
+                                }}
                                 className="w-full border p-2 mb-3 rounded"
                             />
                         ) : (
