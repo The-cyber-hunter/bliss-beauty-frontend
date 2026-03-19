@@ -298,9 +298,16 @@ export default function Services() {
 
                         <Flatpickr
                             value={selectedSlot || ""}
-                            onChange={(date) => setSelectedSlot(date[0]?.toISOString().split('T')[0] || null)}
+                            onChange={(date) =>
+                                setSelectedSlot(date[0]?.toISOString().split("T")[0] || null)
+                            }
+                            options={{
+                                dateFormat: "Y-m-d",
+                                altInput: true,       // shows a proper input with placeholder
+                                altFormat: "Y-m-d",
+                                allowInput: true,     // allows typing and placeholder
+                            }}
                             placeholder="Select Date"
-                            options={{ dateFormat: "Y-m-d" }}
                             className="w-full border p-2 mb-3 rounded"
                         />
 
@@ -309,13 +316,14 @@ export default function Services() {
                             <Flatpickr
                                 value={selectedTime || ""}
                                 onChange={(time) => setSelectedTime(time[0])}
-                                placeholder="Select Time"
                                 options={{
                                     enableTime: true,
                                     noCalendar: true,
                                     dateFormat: "H:i",
                                     time_24hr: true,
+                                    allowInput: true,   // allows placeholder to show
                                 }}
+                                placeholder="Select Time"
                                 className="w-full border p-2 mb-3 rounded"
                             />
                         ) : (
