@@ -432,8 +432,8 @@ export default function Home() {
           Book easily and enjoy professional care wherever you are.
         </p>
         <p className="mb-6">Book your appointment today</p>
-        <Link href="/contact" className="bg-[#D4AF37] px-6 py-3 rounded-xl">
-          Book Now
+        <Link href="/services" className="bg-[#D4AF37] px-6 py-3 rounded-xl">
+          Select Our Services
         </Link>
       </motion.section >
       <Footer />

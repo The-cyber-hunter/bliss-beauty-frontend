@@ -279,6 +279,7 @@ export default function Services() {
                         />
 
                         <input
+                        placeholder="Select Date"
                             type="date"
                             className="w-full border p-2 mb-3 rounded"
                         />
@@ -286,6 +287,7 @@ export default function Services() {
                         {/* Time / Slots */}
                         {mode === "home" ? (
                             <input
+                                placeholder="Select Time"
                                 type="time"
                                 className="w-full border p-2 mb-3 rounded"
                             />
