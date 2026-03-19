@@ -2,8 +2,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/navbar";
-import Flatpickr from "react-flatpickr";
-import "flatpickr/dist/flatpickr.css";
 
 
 const servicesData = [
@@ -17,8 +15,8 @@ export default function Services() {
     const [selectedServices, setSelectedServices] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [mode, setMode] = useState<"home" | "salon">("home");
-    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-    const [selectedTime, setSelectedTime] = useState<Date | null>(null);
+    const [selectedSlot, setSelectedSlot] = useState<string>(""); 
+    const [selectedTime, setSelectedTime] = useState<string>(""); 
     const [address, setAddress] = useState("");
 
     const toggleService = (service: any) => {
@@ -296,33 +294,20 @@ export default function Services() {
                             className="w-full border p-2 mb-3 rounded"
                         />
 
-                        <Flatpickr
+                        <input
+                            type="date"
                             value={selectedSlot || ""}
-                            onChange={(date) =>
-                                setSelectedSlot(date[0]?.toISOString().split("T")[0] || null)
-                            }
-                            options={{
-                                dateFormat: "Y-m-d",
-                                altInput: true,       // shows a proper input with placeholder
-                                altFormat: "Y-m-d",
-                                allowInput: true,     // allows typing and placeholder
-                            }}
+                            onChange={(e) => setSelectedSlot(e.target.value)}
                             placeholder="Select Date"
                             className="w-full border p-2 mb-3 rounded"
                         />
 
                         {/* Time / Slots */}
                         {mode === "home" ? (
-                            <Flatpickr
+                            <input
+                                type="time"
                                 value={selectedTime || ""}
-                                onChange={(time) => setSelectedTime(time[0])}
-                                options={{
-                                    enableTime: true,
-                                    noCalendar: true,
-                                    dateFormat: "H:i",
-                                    time_24hr: true,
-                                    allowInput: true,   // allows placeholder to show
-                                }}
+                                onChange={(e) => setSelectedTime(e.target.value)}
                                 placeholder="Select Time"
                                 className="w-full border p-2 mb-3 rounded"
                             />
