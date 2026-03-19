@@ -15,8 +15,8 @@ export default function Services() {
     const [selectedServices, setSelectedServices] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [mode, setMode] = useState<"home" | "salon">("home");
-    const [selectedSlot, setSelectedSlot] = useState<string>(""); 
-    const [selectedTime, setSelectedTime] = useState<string>(""); 
+    const [selectedSlot, setSelectedSlot] = useState<string>("");
+    const [selectedTime, setSelectedTime] = useState<string>("");
     const [address, setAddress] = useState("");
 
     const toggleService = (service: any) => {
@@ -294,23 +294,30 @@ export default function Services() {
                             className="w-full border p-2 mb-3 rounded"
                         />
 
-                        <input
-                            type="date"
-                            value={selectedSlot || ""}
-                            onChange={(e) => setSelectedSlot(e.target.value)}
-                            placeholder="Select Date"
-                            className="w-full border p-2 mb-3 rounded"
-                        />
-
+                        <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Select Date
+                            </label>
+                            <input
+                                type="date"
+                                value={selectedSlot}
+                                onChange={(e) => setSelectedSlot(e.target.value)}
+                                className="w-full border p-2 rounded"
+                            />
+                        </div>
                         {/* Time / Slots */}
                         {mode === "home" ? (
-                            <input
-                                type="time"
-                                value={selectedTime || ""}
-                                onChange={(e) => setSelectedTime(e.target.value)}
-                                placeholder="Select Time"
-                                className="w-full border p-2 mb-3 rounded"
-                            />
+                            <div className="mb-3">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Select Time
+                                </label>
+                                <input
+                                    type="time"
+                                    value={selectedTime}
+                                    onChange={(e) => setSelectedTime(e.target.value)}
+                                    className="w-full border p-2 rounded"
+                                />
+                            </div>
                         ) : (
                             <div className="mb-3">
                                 <p className="text-sm text-gray-600 mb-2">
