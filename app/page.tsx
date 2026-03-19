@@ -1,65 +1,442 @@
+"use client";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer"; 
 import Image from "next/image";
+import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function Home() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const services = [
+    { name: "Hair Styling", img: "/haircut.jpg" },
+    { name: "Facial Treatments", img: "/facial.jpg" },
+    { name: "Waxing", img: "/waxing.jpg" },
+  ];
+
+  const faqs = [
+    {
+      question: "Do you provide home beauty services?",
+      answer: "Yes, we provide professional beauty services at your home with trained experts.",
+    },
+    {
+      question: "Can I visit your salon directly?",
+      answer: "Yes, walk-ins are welcome at our premium salon.",
+    },
+    {
+      question: "Do you offer bridal makeup services?",
+      answer: "Yes, including HD, airbrush, and full wedding packages.",
+    },
+    {
+      question: "How can I book a service?",
+      answer: "Book easily via our website or call us.",
+    },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+   <div className="min-h-screen flex flex-col bg-[#F9F8F7] text-[#2D2D2D]">
+      <Navbar />
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-5xl font-bold leading-tight mb-6">
+            Premium Beauty <br /> At Home & In Salon
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="text-gray-600 mb-6 text-lg">
+            Discover luxury beauty services with expert professionals. Relax, rejuvenate, and glow whether you choose our premium salon experience or convenient home services.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+          <p className="text-gray-500 mb-8">
+            From quick grooming sessions to complete bridal transformations, we
+            bring the salon experience right to your home with comfort,
+            hygiene, and trust.
+          </p>
+
+          <div className="flex gap-4">
+            <Link href="/services" className="bg-[#D4AF37] text-white px-6 py-3 rounded-xl">
+              Explore Services
+            </Link>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative h-[450px] rounded-3xl overflow-hidden shadow-lg"
+        >
+          <Image src="/hero.jpg" alt="Beauty" fill className="object-cover" />
+        </motion.div>
+      </section>
+
+      {/* SERVICE OPTIONS */}
+      <section className="bg-white py-12">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8">
+
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.04 }}
+            className="p-8 border rounded-2xl shadow-sm"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <h3 className="text-2xl font-semibold mb-3">At Home Services</h3>
+            <p className="text-gray-600 mb-4">
+              Enjoy salon-quality beauty services in the comfort of your home.
+              Our professionals bring everything needed for a safe and hygienic experience.
+            </p>
+            <ul className="text-gray-500 text-sm space-y-1">
+              <li>✔ Convenient & time-saving</li>
+              <li>✔ Hygienic & safe setup</li>
+              <li>✔ Perfect for busy schedules</li>
+            </ul>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.04 }}
+            className="p-8 border rounded-2xl shadow-sm"
           >
-            Documentation
-          </a>
+            <h3 className="text-2xl font-semibold mb-3">Visit Our Salon</h3>
+            <p className="text-gray-600 mb-4">
+              Experience luxury at our fully equipped salon with a relaxing
+              ambiance and premium beauty treatments.
+            </p>
+            <ul className="text-gray-500 text-sm space-y-1">
+              <li>✔ Premium salon environment</li>
+              <li>✔ Advanced equipment</li>
+              <li>✔ Complete beauty experience</li>
+            </ul>
+          </motion.div>
         </div>
-      </main>
-    </div>
+      </section >
+
+      <section className="max-w-5xl mx-auto px-6 py-20 text-left">
+        <h2 className="text-3xl font-semibold mb-6 text-center">
+          About BLISS
+        </h2>
+
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="relative">
+          <div
+            className={`text-gray-600 leading-relaxed space-y-4 transition-all duration-500 ${expanded ? "max-h-full" : "max-h-[180px] overflow-hidden"
+              }`}
+          >
+            <p>
+              BLISS Heaven of Beauty Salon & Academy is a premium destination for
+              modern beauty, grooming, and wellness services. We are committed to
+              delivering salon-quality experiences using high-end products,
+              advanced techniques, and professionally trained experts.
+            </p>
+
+            <p>
+              Whether you choose the comfort of at-home services or visit our
+              fully equipped luxury salon, our goal is to provide a relaxing,
+              hygienic, and personalized experience tailored to your needs.
+            </p>
+
+            <p>
+              From everyday grooming to bridal transformations, our team ensures
+              every client feels confident, beautiful, and cared for. We take
+              pride in maintaining the highest standards of hygiene, safety,
+              and customer satisfaction.
+            </p>
+
+            <p>
+              At BLISS, beauty is not just a service — it’s an experience designed
+              to help you relax, rejuvenate, and glow with confidence.
+            </p>
+          </div>
+
+          {/* Fade Effect */}
+          {!expanded && (
+            <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#F9F8F7] to-transparent"></div>
+          )}
+        </motion.div>
+
+        {/* Read More Button */}
+        <div className="text-center mt-6">
+          <Link
+            href="/about"
+            className="text-[#D4AF37] font-medium hover:underline cursor-pointer"
+          >
+            Read More →
+          </Link>
+        </div>
+      </section>
+
+      <section className="bg-[#EFEAE4] py-20">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-semibold mb-12">
+            Why Choose BLISS?
+          </h2>
+
+          <motion.div
+            className="grid md:grid-cols-4 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.15 } },
+            }}
+          >
+            {[
+              "Certified Professionals",
+              "100% Hygiene & Safety",
+              "Premium Products Used",
+              "On-Time Service Guarantee",
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                whileHover={{ scale: 1.05 }}
+                className="p-6 bg-white rounded-2xl shadow-sm"
+              >
+                <p className="text-gray-700 font-medium">{item}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section >
+
+      {/* SERVICES */}
+      < section className="max-w-6xl mx-auto px-6 py-20" >
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="text-3xl font-semibold">Our Services</h2>
+          <Link href="/services" className="text-[#D4AF37] font-medium">
+            View All →
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {services.map((service, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.06 }}>
+              <div className="relative h-[220px]">
+                <Image src={service.img} alt={service.name} fill className="object-cover" />
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-medium">{service.name}</h3>
+                <p className="text-gray-500 text-sm mt-2">
+                  Professional {service.name.toLowerCase()} services by trained experts.
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section >
+
+      {/* PROCESS */}
+      < section className="bg-[#EFEAE4] py-20" >
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-semibold mb-12">How It Works</h2>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {["Choose Service", "Book Appointment", "Relax & Enjoy"].map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.2 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+                className="p-6 bg-white rounded-2xl shadow"
+              >
+                <h3 className="text-xl font-medium mb-2">Step {i + 1}</h3>
+                <p className="text-gray-600">{step}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section >
+
+      <section className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
+
+        {/* IMAGE */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="relative w-full aspect-[3/2] rounded-2xl overflow-hidden shadow-lg"
+        >
+          <Image
+            src="/bridal.jpg"
+            alt="Bridal Makeup"
+            fill
+            className="object-cover object-[50%_20%]"
+          />
+        </motion.div>
+
+        {/* CONTENT */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl font-semibold mb-4">
+            Bridal Makeup Packages
+          </h2>
+
+          <p className="text-gray-600 mb-4">
+            Look flawless on your special day with our expert bridal makeup
+            services designed to enhance your natural beauty and match your
+            unique style.
+          </p>
+
+          <p className="text-gray-500 mb-6">
+            From pre-wedding consultations to the final touch, we ensure a
+            stress-free and luxurious experience with premium products and
+            professional techniques.
+          </p>
+
+          {/* FEATURES */}
+          <ul className="text-gray-600 text-sm space-y-2 mb-6">
+            <li>✔ HD & Airbrush Makeup</li>
+            <li>✔ Hairstyling & Draping</li>
+            <li>✔ Premium International Products</li>
+            <li>✔ Pre-Bridal Skin Preparation</li>
+            <li>✔ Long-lasting Waterproof Finish</li>
+          </ul>
+
+          {/* CTA */}
+          <div className="flex gap-4">
+            <span className="inline-block bg-[#D4AF37] text-white text-sm px-4 py-1 rounded-full mb-4">
+              Starting from ₹4,999
+            </span>
+            <Link
+              href="/services"
+              className="border border-[#2D2D2D] px-2 py-1 pt-2 rounded-xl hover:bg-[#D4AF37] hover:text-white transition"
+            >
+              View Details
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+
+      <section className="bg-white py-20">
+        <div className="max-w-5xl mx-auto text-center px-6">
+          <h2 className="text-3xl font-semibold mb-4">
+            Trusted by Hundreds of Happy Clients
+          </h2>
+          <p className="text-gray-500 mb-10">
+            Rated 4.9★ by our customers for quality, hygiene, and professionalism
+          </p>
+
+          <motion.div
+            className="grid md:grid-cols-3 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.2 } },
+            }}
+          >
+            {[
+              {
+                name: "Riya Sharma",
+                review:
+                  "Absolutely loved the service! The beautician was very professional and everything was super hygienic.",
+              },
+              {
+                name: "Neha Verma",
+                review:
+                  "Booked bridal makeup and it was perfect. Got so many compliments. Highly recommended!",
+              },
+              {
+                name: "Pooja Singh",
+                review:
+                  "Super convenient home service. Saved my time and the results were amazing.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                whileHover={{ scale: 1.04 }}
+                className="p-6 border rounded-xl text-left shadow-sm"
+              >
+                <div className="text-[#D4AF37] mb-2">★★★★★</div>
+                <p className="text-gray-600 text-sm mb-4">"{item.review}"</p>
+                <h4 className="font-medium text-sm">{item.name}</h4>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section >
+
+      {/* FAQ */}
+      < section className="max-w-4xl mx-auto px-6 py-20" >
+        <h2 className="text-3xl font-semibold text-center mb-10">FAQs</h2>
+
+        {
+          faqs.map((faq, index) => (
+            <div key={index} className="border-b py-4">
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full flex justify-between"
+              >
+                {faq.question}
+                <span>{openIndex === index ? "-" : "+"}</span>
+              </button>
+
+              {openIndex === index && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  transition={{ duration: 0.3 }}
+                  className="text-gray-600 mt-2"
+                >
+                  {faq.answer}
+                </motion.p>
+              )}
+            </div>
+          ))
+        }
+      </section >
+
+      {/* CTA */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="bg-[#2D2D2D] text-white py-16 text-center"
+      >
+        <h2 className="text-3xl mb-4">Ready to Glow?</h2>
+        <p className="max-w-xl mx-auto">
+          We provide home beauty services and salon experiences across your city.
+          Book easily and enjoy professional care wherever you are.
+        </p>
+        <p className="mb-6">Book your appointment today</p>
+        <Link href="/contact" className="bg-[#D4AF37] px-6 py-3 rounded-xl">
+          Book Now
+        </Link>
+      </motion.section >
+      <Footer />
+    </div >
   );
 }
