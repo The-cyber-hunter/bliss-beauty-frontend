@@ -22,3 +22,28 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* Custom Scrollbar */
+.modal-scrollbar::-webkit-scrollbar {
+  width: 8px !important;        /* Width of scrollbar */
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: #f0f0f0 !important; /* Track color */
+  border-radius: 10px !important;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #D4AF37 !important;  /* Thumb color */
+  border-radius: 10px !important;
+  border: 2px solid #f0f0f0 !important; /* creates padding effect */
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #b38f24 !important; /* Hover color */
+}
+
+/* For Firefox */
+.modal-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #D4AF37 #f0f0f0 !important;
+}

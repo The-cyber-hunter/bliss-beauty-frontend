@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,17 +19,21 @@ export default function Navbar() {
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: "easeOut" }}
-      className="flex justify-between items-center px-6 py-4 bg-[#F9F8F7] border-b border-[#2D2D2D] sticky top-0 z-50 shadow-sm"
-    >
+      className="flex justify-between items-center px-8 py-5 bg-gradient-to-r from-[#F5F1EC]/80 via-[#F8F5F0]/70 to-[#F5F1EC]/80  border-b border-[#E8E2D9]/60 sticky top-0 z-50 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent" />
       {/* Logo */}
-      <motion.h1
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="text-2xl font-bold text-[#2D2D2D]"
-      >
-        BLISS
-      </motion.h1>
+      <Link
+        href="/">
+        <div className="relative h-12 w-auto">
+          <Image
+            src="/logo.png"
+            alt="Bliss Heaven of Beauty Logo"
+            width={200}
+            height={80}
+            className="object-contain h-full w-auto"
+          />
+        </div>
+      </Link>
 
       {/* Desktop Links */}
       <div className="hidden md:flex gap-8 items-center text-[#2D2D2D]">
@@ -49,7 +54,7 @@ export default function Navbar() {
         ))}
         {/* WhatsApp Button Desktop */}
         <motion.a
-          href="https://wa.me/919939476088"
+          href="https://wa.me/9939476088"
           target="_blank"
           rel="noopener noreferrer"
           whileHover={{ scale: 1.05, backgroundColor: "#25D366" }}
@@ -57,7 +62,7 @@ export default function Navbar() {
           transition={{ duration: 0.3 }}
           className="bg-[#D4AF37] flex items-center gap-2 text-white px-5 py-2 rounded-lg font-medium transition-all"
         >
-          WhatsApp
+          Contact Us
         </motion.a>
       </div>
 
@@ -88,12 +93,12 @@ export default function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-90 flex flex-col justify-center items-center z-50"
+            className="fixed inset-0 bg-white/60 backdrop-blur-md flex flex-col justify-center items-center z-50"
           >
             {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-6 right-6 text-white"
+              className="absolute top-6 right-6 text-[#2D2D2D]"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +128,7 @@ export default function Navbar() {
                 <Link
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="text-white text-3xl font-semibold hover:text-[#D4AF37] transition"
+                  className="text-[#2D2D2D] text-3xl font-semibold hover:text-[#D4AF37] transition"
                 >
                   {link.name}
                 </Link>
@@ -132,7 +137,7 @@ export default function Navbar() {
 
             {/* WhatsApp Button */}
             <motion.a
-              href="https://wa.me/919939476088"
+              href="https://wa.me/9939476088"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05, backgroundColor: "#25D366" }}
@@ -141,7 +146,7 @@ export default function Navbar() {
               onClick={() => setIsOpen(false)}
               className="mt-8 bg-[#D4AF37] flex items-center gap-2 text-white px-8 py-3 rounded-lg text-xl font-medium transition"
             >
-              WhatsApp
+              Contact Us
             </motion.a>
           </motion.div>
         )}

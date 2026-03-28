@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { MapPin, Phone, Mail } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
   return (
@@ -53,11 +55,27 @@ export default function Footer() {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <h3 className="text-xl font-semibold mb-4">Contact</h3>
-          <p className="text-gray-300 text-sm mb-2">
-            📍 Sindhora Road, Natiniyadai Mandir, Varanasi
-          </p>
-          <p className="text-gray-300 text-sm mb-2">📞 +91 9876543210</p>
-          <p className="text-gray-300 text-sm">✉ info@blissbeauty.com</p>
+          <a
+            href="https://www.google.com/maps?q=Sindhora+Road+Natiniyadai+Mandir+Varanasi"
+            target="_blank"
+            rel="noopener noreferrer"
+           className="flex items-start gap-2 text-gray-300 text-sm mb-3 hover:text-[#D4AF37] transition"
+          >
+             <MapPin size={18} className="mt-1" />Sindhora Road, Natiniyadai Mandir, Varanasi
+          </a>
+          <a
+            href="tel:+919939476088"
+            className="flex items-center gap-2 text-gray-300 text-sm mb-3 hover:text-[#D4AF37] transition"
+          >
+              <Phone size={18} />+91 9939476088
+          </a>
+
+          <a
+            href="mailto:info@blissbeauty.com"
+            className="flex items-center gap-2 text-gray-300 text-sm hover:text-[#D4AF37] transition"
+          >
+             <Mail size={18} /> info@blissbeauty.com
+          </a>
         </motion.div>
 
         {/* Socials */}
@@ -68,11 +86,31 @@ export default function Footer() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <h3 className="text-xl font-semibold mb-4">Follow Us</h3>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-[#D4AF37]">Facebook</a>
-            <a href="#" className="hover:text-[#D4AF37]">Instagram</a>
-            <a href="#" className="hover:text-[#D4AF37]">Twitter</a>
-          </div>
+            <div className="flex gap-4">
+              <a
+                href="https://facebook.com/yourpage"
+                target="_blank"
+                className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
+              >
+                <FaFacebookF size={16} />
+              </a>
+
+              <a
+                href="https://instagram.com/yourpage"
+                target="_blank"
+                className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
+              >
+                <FaInstagram size={16} />
+              </a>
+
+              <a
+                href="https://twitter.com/yourpage"
+                target="_blank"
+                className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
+              >
+                <FaTwitter size={16} />
+              </a>
+            </div>
         </motion.div>
 
       </div>
