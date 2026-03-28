@@ -96,7 +96,7 @@ export default function Footer() {
               </a>
 
               <a
-                href="https://instagram.com/yourpage"
+                href="https://www.instagram.com/bliss_salon01?igsh=MTZ6ODIzNzljN3kxZA=="
                 target="_blank"
                 className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
               >
