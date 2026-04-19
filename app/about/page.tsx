@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Image from "next/image";
 import Head from "next/head";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function About() {
@@ -120,19 +121,127 @@ export default function About() {
                         </div>
                     </motion.div>
 
-                    {/* SERVICES */}
-                    <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-3xl font-semibold mb-4">
-                            Our Beauty Services
-                        </h2>
+                    {/* ACADEMY — same section pattern as “Why Choose BLISS?” (open grid, no card) */}
+                    <motion.div
+                        className="grid md:grid-cols-2 gap-12 md:gap-20 items-center mb-16"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <div>
+                            <h2 className="text-3xl font-semibold mb-4">
+                                BLISS Academy
+                            </h2>
 
-                        <p className="text-gray-600">
-                            We offer a wide range of beauty services including facial
-                            treatments, hair styling, waxing, skincare, and bridal makeup.
-                            Our services are designed to provide convenience, comfort,
-                            and premium results for every client.
-                        </p>
-                    </div>
+                            <p className="text-gray-600 mb-4">
+                                Alongside our salon, we train aspiring and working beauticians in makeup, hair,
+                                skin care, and bridal artistry — with the same hygiene standards and hands-on
+                                approach we use with clients every day.
+                            </p>
+
+                            <ul className="space-y-3 text-gray-600 mb-8">
+                                <li>✔ Hands-on practice and small-batch learning</li>
+                                <li>✔ From basics to advanced bridal and salon skills</li>
+                                <li>✔ Perfect for beginners and artists upgrading their craft</li>
+                            </ul>
+
+                            <div className="flex flex-wrap gap-4">
+                                <Link
+                                    href="/academy"
+                                    className="bg-[#D4AF37] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#c9a432] transition-colors"
+                                >
+                                    View courses
+                                </Link>
+                                <Link
+                                    href="/contact"
+                                    className="border border-[#2D2D2D]/20 px-6 py-3 rounded-xl font-medium text-[#2D2D2D] hover:border-[#D4AF37] hover:text-[#B8860B] transition-colors"
+                                >
+                                    Enquire about batches
+                                </Link>
+                            </div>
+                        </div>
+
+                        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden">
+                            <Image
+                                src="/facial.jpg"
+                                alt="BLISS Academy professional training"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                            />
+                        </div>
+                    </motion.div>
+
+                    {/* SERVICES — same grid pattern as “Why Choose BLISS?”: image + structured copy */}
+                    <motion.div
+                        className="grid md:grid-cols-2 gap-12 md:gap-20 items-center mb-16"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden">
+                            <Image
+                                src="/waxing.jpg"
+                                alt="Beauty and grooming services at BLISS"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                            />
+                        </div>
+
+                        <div>
+                            <h2 className="text-3xl font-semibold mb-3">
+                                Our Beauty Services
+                            </h2>
+                            <p className="text-gray-600 mb-6">
+                                One menu for salon visits and at-home bookings — professional care, hygienic setup,
+                                and products chosen for Indian skin and hair.
+                            </p>
+
+                            <h3 className="text-sm font-semibold uppercase tracking-wide text-[#B8860B] mb-2">
+                                Facials, hair & body
+                            </h3>
+                            <ul className="space-y-2 text-gray-600 mb-6">
+                                <li>✔ Facials, cleanup, bleach & skin treatments</li>
+                                <li>✔ Haircuts, styling, colour & occasion looks</li>
+                                <li>✔ Waxing, massages, manicure & pedicure</li>
+                            </ul>
+
+                            <h3 className="text-sm font-semibold uppercase tracking-wide text-[#B8860B] mb-2">
+                                Bridal & events
+                            </h3>
+                            <ul className="space-y-2 text-gray-600 mb-6">
+                                <li>✔ HD, airbrush & party makeup with trials</li>
+                                <li>✔ Looks planned around outfit, lighting & timeline</li>
+                                <li>✔ Packages & seasonal offers on popular services</li>
+                            </ul>
+
+                            <h3 className="text-sm font-semibold uppercase tracking-wide text-[#B8860B] mb-2">
+                                Salon or home
+                            </h3>
+                            <ul className="space-y-2 text-gray-600 mb-8">
+                                <li>✔ Same team and standards — visit us or book at home</li>
+                                <li>✔ Consultation first; advice matched to your goals</li>
+                            </ul>
+
+                            <div className="flex flex-wrap gap-4">
+                                <Link
+                                    href="/services"
+                                    className="bg-[#D4AF37] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#c9a432] transition-colors"
+                                >
+                                    Explore all services
+                                </Link>
+                                <Link
+                                    href="/contact"
+                                    className="border border-[#2D2D2D]/20 px-6 py-3 rounded-xl font-medium text-[#2D2D2D] hover:border-[#D4AF37] hover:text-[#B8860B] transition-colors"
+                                >
+                                    Book / enquire
+                                </Link>
+                            </div>
+                        </div>
+                    </motion.div>
 
                     {/* STATS */}
                     <motion.div

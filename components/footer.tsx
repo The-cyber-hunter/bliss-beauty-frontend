@@ -42,6 +42,9 @@ export default function Footer() {
               <Link href="/about" className="hover:text-[#D4AF37]">About Us</Link>
             </li>
             <li>
+              <Link href="/academy" className="hover:text-[#D4AF37]">Academy</Link>
+            </li>
+            <li>
               <Link href="/contact" className="hover:text-[#D4AF37]">Contact</Link>
             </li>
           </ul>
@@ -88,7 +91,7 @@ export default function Footer() {
           <h3 className="text-xl font-semibold mb-4">Follow Us</h3>
             <div className="flex gap-4">
               <a
-                href="https://facebook.com/yourpage"
+                href="https://www.facebook.com/61583730351672/"
                 target="_blank"
                 className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
               >

@@ -3,8 +3,53 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/navbar";
 import { useEffect } from "react";
-import TimePicker from 'react-time-picker';
 import 'react-time-picker/dist/TimePicker.css';
+import PaymentModal from "@/components/PaymentModal";
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
+
+
+const CountdownTimer = ({ endDate }: { endDate: string }) => {
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    useEffect(() => {
+        const end = new Date(endDate).getTime();
+        const updateTimer = () => {
+            const now = new Date().getTime();
+            const remaining = Math.max(0, Math.floor((end - now) / 1000));
+            setTimeLeft(remaining);
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [endDate]);
+
+    if (timeLeft <= 0) {
+        return (
+            <div className="text-[10px] text-gray-500 bg-gray-100 px-2 py-1 rounded-md inline-block">
+                Offer Expired
+            </div>
+        );
+    }
+
+    const formatTime = (seconds: number) => {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    return (
+        <div className="text-[10px] text-red-600 bg-red-50 px-2 py-1 rounded-md inline-block">
+            ⏳ Ends in {formatTime(timeLeft)}
+        </div>
+    );
+};
 
 
 const servicesData = [
@@ -169,38 +214,324 @@ const bridalPackages = [
         includes: ["Traditional Look", "Hairstyling", "Draping"],
     },
 ];
+
+/** Turn lat/lng into a readable address (no placeholder API key). */
+async function reverseGeocodeToAddress(lat: number, lon: number): Promise<string> {
+    const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (googleKey) {
+        try {
+            const res = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${googleKey}`
+            );
+            const data = await res.json();
+            const addr = data.results?.[0]?.formatted_address;
+            if (addr) return addr;
+        } catch {
+            /* fall through */
+        }
+    }
+
+    try {
+        const res = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+        );
+        if (res.ok) {
+            const d = await res.json();
+            const parts = [d.locality, d.city, d.principalSubdivision, d.postcode, d.countryName].filter(
+                (p: string, i: number, arr: string[]) => p && arr.indexOf(p) === i
+            );
+            const line = parts.join(", ");
+            if (line) return line;
+        }
+    } catch {
+        /* fall through */
+    }
+
+    try {
+        const res = await fetch(`https://photon.komoot.io/reverse?lon=${lon}&lat=${lat}`);
+        if (res.ok) {
+            const data = await res.json();
+            const p = data.features?.[0]?.properties;
+            if (p) {
+                const street = [p.housenumber, p.street].filter(Boolean).join(" ").trim();
+                const bits = [street || p.name, p.district, p.city || p.county, p.state, p.postcode, p.country].filter(
+                    Boolean
+                ) as string[];
+                const unique = bits.filter((x, i) => bits.indexOf(x) === i);
+                if (unique.length) return unique.join(", ");
+            }
+        }
+    } catch {
+        /* fall through */
+    }
+
+    return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+}
+
 export default function Services() {
     const [activeTab, setActiveTab] = useState("regular");
     const [selectedServices, setSelectedServices] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [mode, setMode] = useState<"home" | "salon">("home");
-    const [selectedSlot, setSelectedSlot] = useState<string>("");
-    const [selectedTime, setSelectedTime] = useState<string>("");
+    const [selectedDate, setSelectedDate] = useState(""); // from input
+    const [selectedTimeSlot, setSelectedTimeSlot] = useState(""); // for salon slots only
     const [address, setAddress] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
-    const [timeLeft, setTimeLeft] = useState(3600);
     const [coupon, setCoupon] = useState("");
     const [discount, setDiscount] = useState(0);
     const [couponMsg, setCouponMsg] = useState("");
+    const [name, setName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+    const [activePromotions, setActivePromotions] = useState<any>({});
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-        }, 1000);
+        const fetchActivePromotions = async () => {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/bookings/active-promotions`, {
+                    cache: "no-store",
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setActivePromotions(data.promotions);
+                }
+            } catch (error) {
+                console.error("Failed to fetch promotions:", error);
+            }
+        };
 
-        return () => clearInterval(timer);
-    }, []);// 1 hour in seconds
+        fetchActivePromotions();
+    }, [BACKEND_URL]);
 
-    const formatTime = (seconds: number) => {
-        const hrs = Math.floor(seconds / 3600);
-        const mins = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
+    const getApplicablePromotion = (serviceName: string, serviceType: string) => {
+        const promotions = activePromotions[serviceType] || [];
+        return promotions.find((promo: any) =>
+            !promo.serviceName || promo.serviceName === serviceName
+        );
+    };
 
-        return `${hrs.toString().padStart(2, "0")}:${mins
-            .toString()
-            .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    useEffect(() => {
+        if (mode === "salon" && selectedDate) {
+            const fetchSlots = async () => {
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/bookings/available-slots?date=${selectedDate}`);
+                    const data = await res.json();
+
+                    if (data.success) {
+                        setAvailableSlots(data.slots || []);
+                    } else {
+                        setAvailableSlots([]);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch slots:", err);
+                    setAvailableSlots([]);
+                }
+            };
+
+            fetchSlots();
+        }
+    }, [selectedDate, mode]);
+
+    // Refetch slots when window gains focus (user returns to page)
+    useEffect(() => {
+        const handleFocus = () => {
+            if (mode === "salon" && selectedDate) {
+                const fetchSlots = async () => {
+                    try {
+                        const res = await fetch(`${BACKEND_URL}/api/bookings/available-slots?date=${selectedDate}`);
+                        const data = await res.json();
+                        if (data.success) {
+                            setAvailableSlots(data.slots || []);
+                        } else {
+                            setAvailableSlots([]);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch slots:", err);
+                        setAvailableSlots([]);
+                    }
+                };
+
+                fetchSlots();
+            }
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, [mode, selectedDate, BACKEND_URL]);
+
+    useEffect(() => {
+        // Reset coupon and discount when services change
+        setCoupon("");
+        setDiscount(0);
+        setCouponMsg("");
+    }, [selectedServices]);
+
+    useEffect(() => {
+        // Reset discount and message when coupon input is cleared
+        if (!coupon.trim()) {
+            setDiscount(0);
+            setCouponMsg("");
+        }
+    }, [coupon]);
+
+    const handleBooking = () => {
+        // ✅ Validation only — then show payment modal
+        if (!name || !phone || !email || !selectedDate || (mode === "salon" && !selectedTimeSlot)) {
+            alert("Please fill all required fields ⚠️");
+            return;
+        }
+        if (mode === "home" && !address) {
+            alert("Please enter address for home service 🏠");
+            return;
+        }
+        setShowPaymentModal(true);
+    };
+
+    const resetForm = () => {
+        setShowModal(false);
+        setShowPaymentModal(false);
+        setSelectedServices([]);
+        setName("");
+        setPhone("");
+        setEmail("");
+        setAddress("");
+        setSelectedTimeSlot("");
+        setCoupon("");
+        setDiscount(0);
+    };
+
+    const buildBookingPayload = () => {
+        const prices: Record<string, number> = {};
+        const serviceTypes: Record<string, string> = {};
+        selectedServices.forEach(s => {
+            prices[s.name] = mode === "home" ? (s.originalHome || s.homePrice) : (s.originalSalon || s.salonPrice);
+            serviceTypes[s.name] = s.serviceType || "regular";
+        });
+
+        const payload: Record<string, any> = {
+            name,
+            phone,
+            email,
+            services: selectedServices.map(s => s.name),
+            mode,
+            date: selectedDate,
+            address,
+            total: totalOriginal,
+            prices,
+            serviceTypes,
+            couponCode: discount > 0 ? coupon.trim() : undefined,
+        };
+        if (mode === "salon") {
+            payload["time"] = selectedTimeSlot;
+        } else {
+            delete payload["time"];
+        }
+        return payload;
+    };
+
+    const handlePaymentMethod = async (method: "online" | "cod") => {
+        try {
+            setLoading(true);
+
+            const bookingPayload = buildBookingPayload();
+            bookingPayload.paymentMethod = method;
+
+            // Step 1: Create booking
+            const bookingRes = await fetch(`${BACKEND_URL}/api/bookings`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bookingPayload),
+            });
+            const bookingData = await bookingRes.json();
+
+            if (!bookingData.success) {
+                alert(`Booking Failed ❌\n${bookingData.message || ""}`);
+                return;
+            }
+
+            const { bookingId, finalAmount } = bookingData.booking;
+
+            if (method === "cod") {
+                // COD: booking is confirmed immediately
+                alert(`Booking Confirmed! 🎉\nBooking ID: ${bookingId}\nPay ₹${finalAmount} at the time of service.\nReceipt sent to email 📧`);
+                resetForm();
+                return;
+            }
+
+            // Online: proceed with Razorpay
+            const orderRes = await fetch(`${BACKEND_URL}/api/bookings/razorpay-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount: finalAmount }),
+            });
+            const orderData = await orderRes.json();
+
+            if (!orderData.success) {
+                alert("Failed to create payment order ❌");
+                return;
+            }
+
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_1DP5mmOlF5G5ag",
+                amount: orderData.order.amount,
+                currency: orderData.order.currency,
+                name: "BLISS Beauty & Wellness",
+                description: `Booking: ${bookingId}`,
+                order_id: orderData.order.id,
+                handler: async function (response: any) {
+                    try {
+                        const verifyRes = await fetch(`${BACKEND_URL}/api/bookings/verify-payment`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpaySignature: response.razorpay_signature,
+                                bookingId,
+                            }),
+                        });
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            alert(`Payment Successful! 🎉\nBooking ID: ${bookingId}\nReceipt sent to email 📧`);
+                            resetForm();
+                        } else {
+                            alert("Payment verification failed ❌\nPlease contact support.");
+                        }
+                    } catch (err) {
+                        console.error("Verification error:", err);
+                        alert("Payment verification error ❌\nPlease contact support.");
+                    }
+                },
+                prefill: { name, email, contact: phone },
+                theme: { color: "#D4AF37" },
+                modal: {
+                    ondismiss: function () {
+                        alert("Payment cancelled. Your booking is on hold.");
+                        setLoading(false);
+                    },
+                },
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.on("payment.failed", function (response: any) {
+                alert(`Payment Failed ❌\n${response.error.description}`);
+                setLoading(false);
+            });
+            razorpay.open();
+
+        } catch (error) {
+            console.error(error);
+            alert("Server Error ❌");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const toggleService = (service: any) => {
@@ -217,6 +548,7 @@ export default function Services() {
                     salonPrice: service.salonPrice,
                     originalHome: service.originalHome || service.homePrice,
                     originalSalon: service.originalSalon || service.salonPrice,
+                    serviceType: service.serviceType || "regular",
                 },
             ]);
         }
@@ -237,6 +569,7 @@ export default function Services() {
                     salonPrice: pkg.offerPrice,
                     originalHome: pkg.price,
                     originalSalon: pkg.price,
+                    serviceType: pkg.serviceType || "bridal",
                 },
             ]);
         }
@@ -258,45 +591,67 @@ export default function Services() {
     const savings = totalOriginal - total;
     const finalTotal = total - discount; // discount will come from coupon
 
-    // 📍 Get current location
+    // 📍 Get current location → full address (or coordinates if geocoding fails)
     const getLocation = () => {
         if (!navigator.geolocation) {
             alert("Geolocation not supported");
             return;
         }
 
+        setAddress("Fetching address…");
+
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
-
                 try {
-                    const res = await fetch(
-                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`
-                    );
-                    const data = await res.json();
-                    const location = data.results[0]?.formatted_address;
-
-                    setAddress(location || "Location detected");
-                } catch (err) {
-                    setAddress("Location detected");
+                    const line = await reverseGeocodeToAddress(latitude, longitude);
+                    setAddress(line);
+                } catch {
+                    setAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
                 }
             },
             () => {
+                setAddress("");
                 alert("Unable to retrieve location");
             }
         );
     };
 
-    const applyCoupon = () => {
-        if (coupon === "FIRST50") {
-            setDiscount(50);
-            setCouponMsg("🎉 ₹50 discount applied!");
-        } else if (coupon === "BRIDE200") {
-            setDiscount(200);
-            setCouponMsg("💍 ₹200 bridal discount applied!");
-        } else {
+    const applyCoupon = async () => {
+        if (!coupon.trim()) {
+            setCouponMsg("Please enter a coupon code");
             setDiscount(0);
-            setCouponMsg("❌ Invalid coupon");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/bookings/validate-coupon`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    code: coupon.trim(),
+                    services: selectedServices.map(s => ({
+                        name: s.name,
+                        price: mode === "home" ? s.homePrice : s.salonPrice,
+                    })),
+                }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                setDiscount(data.discount);
+                setCouponMsg(`🎉 ₹${data.discount} discount applied!`);
+            } else {
+                setDiscount(0);
+                setCouponMsg(`❌ ${data.message}`);
+            }
+        } catch (err) {
+            console.error("Coupon validation error:", err);
+            setDiscount(0);
+            setCouponMsg("❌ Error validating coupon");
         }
     };
 
@@ -365,22 +720,36 @@ export default function Services() {
                                             (s) => s.name === service.name
                                         );
 
+                                        const promotion = getApplicablePromotion(service.name, "regular");
+                                        const hasPromotion = !!promotion;
+
+                                        let discountedHomePrice = service.homePrice;
+                                        let discountedSalonPrice = service.salonPrice;
+                                        let discountAmount = 0;
+
+                                        if (hasPromotion) {
+                                            if (promotion.discountType === "percentage") {
+                                                discountAmount = Math.round((service.homePrice * promotion.discountValue) / 100);
+                                                discountedHomePrice = service.homePrice - discountAmount;
+                                                discountedSalonPrice = service.salonPrice - Math.round((service.salonPrice * promotion.discountValue) / 100);
+                                            } else {
+                                                discountAmount = promotion.discountValue;
+                                                discountedHomePrice = Math.max(0, service.homePrice - promotion.discountValue);
+                                                discountedSalonPrice = Math.max(0, service.salonPrice - promotion.discountValue);
+                                            }
+                                        }
+
                                         return (
                                             <motion.div
                                                 key={service.name}
                                                 onClick={() => {
-                                                    const isExpired = timeLeft === 0;
-
                                                     toggleService({
                                                         name: service.name,
-                                                        homePrice: isExpired
-                                                            ? service.homePrice
-                                                            : service.homePrice - (service.offer || 0),
-                                                        salonPrice: isExpired
-                                                            ? service.salonPrice
-                                                            : service.salonPrice - (service.offer || 0),
+                                                        homePrice: discountedHomePrice,
+                                                        salonPrice: discountedSalonPrice,
                                                         originalHome: service.homePrice,
                                                         originalSalon: service.salonPrice,
+                                                        serviceType: "regular",
                                                     });
                                                 }}
                                                 className={`p-6 rounded-2xl text-center border transition cursor-pointer relative ${isSelected
@@ -416,37 +785,30 @@ export default function Services() {
                                                         ₹{service.homePrice}
                                                     </span>
                                                     <span className="text-[#D4AF37] font-semibold">
-                                                        ₹{service.homePrice - (service.offer || 0)}
+                                                        ₹{discountedHomePrice}
                                                     </span>
                                                 </p>
 
-                                                {/* OFFER */}
-                                                {service.offer > 0 && (
+                                                {/* PROMOTION */}
+                                                {hasPromotion && (
                                                     <div className="mt-3 space-y-1">
-
                                                         {/* 💸 Savings */}
                                                         <div className="text-xs text-pink-700 bg-pink-50 py-1 rounded-md">
-                                                            You save ₹{service.offer} (
-                                                            {Math.round(
-                                                                (service.offer / service.homePrice) * 100
-                                                            )}
-                                                            % OFF)
+                                                            You save ₹{discountAmount} (
+                                                            {promotion.discountType === "percentage"
+                                                                ? `${promotion.discountValue}% OFF`
+                                                                : `₹${promotion.discountValue} OFF`
+                                                            })
                                                         </div>
 
                                                         {/* ⏳ Countdown */}
-                                                        {timeLeft > 0 ? (
-                                                            <div className="text-[10px] text-red-600 bg-red-50 px-2 py-1 rounded-md inline-block">
-                                                                ⏳ Ends in {formatTime(timeLeft)}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-[10px] text-gray-500 bg-gray-100 px-2 py-1 rounded-md inline-block">
-                                                                Offer Expired
-                                                            </div>
+                                                        {promotion.showCountdown && (
+                                                            <CountdownTimer endDate={promotion.endDate} />
                                                         )}
 
-                                                        {/* 🎁 First user */}
+                                                        {/* 🎁 Title */}
                                                         <div className="text-[10px] text-green-700 bg-green-50 px-2 py-1 rounded-md inline-block">
-                                                            ⏳ Limited Time Offer
+                                                            {promotion.title}
                                                         </div>
                                                     </div>
                                                 )}
@@ -471,16 +833,33 @@ export default function Services() {
                             (s) => s.name === service.name
                         );
 
+                        const promotion = getApplicablePromotion(service.name, "makeup");
+                        const hasPromotion = !!promotion;
+
+                        let discountedPrice = service.offerPrice;
+                        let discountAmount = 0;
+
+                        if (hasPromotion) {
+                            if (promotion.discountType === "percentage") {
+                                discountAmount = Math.round((service.price * promotion.discountValue) / 100);
+                                discountedPrice = service.price - discountAmount;
+                            } else {
+                                discountAmount = promotion.discountValue;
+                                discountedPrice = Math.max(0, service.price - promotion.discountValue);
+                            }
+                        }
+
                         return (
                             <motion.div
                                 key={service.name}
                                 onClick={() =>
                                     toggleService({
                                         name: service.name,
-                                        homePrice: service.offerPrice,
-                                        salonPrice: service.offerPrice,
+                                        homePrice: discountedPrice,
+                                        salonPrice: discountedPrice,
                                         originalHome: service.price,
                                         originalSalon: service.price,
+                                        serviceType: "makeup",
                                     })
                                 }
                                 className={`p-6 rounded-2xl text-center border cursor-pointer relative transition ${isSelected
@@ -512,40 +891,38 @@ export default function Services() {
                                     {service.name}
                                 </h2>
 
-                                <span className="text-gray-600 mb-2">
+                                <div className="text-gray-600 mb-2">
                                     <div className="line-through text-gray-400 mr-2">
                                         ₹{service.price}
                                     </div>
                                     <div className="text-[#D4AF37] font-semibold">
-                                        ₹{service.offerPrice}
+                                        ₹{discountedPrice}
                                     </div>
-                                    {service.price > service.offerPrice && (
+                                    {hasPromotion && (
                                         <div className="mt-3 space-y-1">
-
                                             {/* 💸 Savings */}
                                             <div className="text-xs text-pink-700 bg-pink-50 py-1 rounded-md">
-                                                You save ₹{service.price - service.offerPrice} (
-                                                {Math.round(((service.price - service.offerPrice) / service.price) * 100)}% OFF)
+                                                You save ₹{discountAmount} (
+                                                {promotion.discountType === "percentage"
+                                                    ? `${promotion.discountValue}% OFF`
+                                                    : `₹${promotion.discountValue} OFF`
+                                                })
                                             </div>
-
                                             {/* ⏳ Countdown */}
-                                            {timeLeft > 0 ? (
-                                                <div className="text-[10px] text-red-600 bg-red-50 px-2 py-1 rounded-md inline-block">
-                                                    ⏳ Ends in {formatTime(timeLeft)}
-                                                </div>
-                                            ) : (
-                                                <div className="text-[10px] text-gray-500 bg-gray-100 px-2 py-1 rounded-md inline-block">
-                                                    Offer Expired
-                                                </div>
+                                            {promotion.showCountdown && (
+                                                <CountdownTimer endDate={promotion.endDate} />
                                             )}
-
-                                            {/* 🎁 First user */}
+                                            {/* 🎁 Title */}
                                             <div className="text-[10px] text-green-700 bg-green-50 px-2 py-1 rounded-md inline-block">
-                                                ⏳ Limited Time Offer
+                                                {promotion.title}
                                             </div>
                                         </div>
                                     )}
-                                </span>
+                                    {/* 🎁 First user */}
+                                    <div className="text-[10px] text-green-700 bg-green-50 px-2 py-1 rounded-md inline-block">
+                                        ⏳ Limited Time Offer
+                                    </div>
+                                </div>
 
                                 <p className="text-sm text-gray-500">
                                     {isSelected ? "Selected" : "Tap to select"}
@@ -564,10 +941,32 @@ export default function Services() {
                             (s) => s.name === pkg.name
                         );
 
+                        const promotion = getApplicablePromotion(pkg.name, "bridal");
+                        const hasPromotion = !!promotion;
+
+                        let discountedPrice = pkg.offerPrice;
+                        let discountAmount = 0;
+
+                        if (hasPromotion) {
+                            if (promotion.discountType === "percentage") {
+                                discountAmount = Math.round((pkg.price * promotion.discountValue) / 100);
+                                discountedPrice = pkg.price - discountAmount;
+                            } else {
+                                discountAmount = promotion.discountValue;
+                                discountedPrice = Math.max(0, pkg.price - promotion.discountValue);
+                            }
+                        }
+
                         return (
                             <motion.div
                                 key={i}
-                                onClick={() => toggleBridalPackage(pkg)}
+                                onClick={() => {
+                                    toggleBridalPackage({
+                                        ...pkg,
+                                        offerPrice: discountedPrice,
+                                        serviceType: "bridal",
+                                    });
+                                }}
                                 className={`p-6 rounded-2xl text-center border cursor-pointer relative transition ${isSelected
                                     ? "border-[#D4AF37] bg-[#fffaf0]"
                                     : "border-[#2D2D2D]"
@@ -604,31 +1003,28 @@ export default function Services() {
                                 </p>
 
                                 <p className="font-semibold text-lg text-[#D4AF37]">
-                                    ₹{pkg.offerPrice}
+                                    ₹{discountedPrice}
                                 </p>
-                                {pkg.price > pkg.offerPrice && (
+                                {hasPromotion && (
                                     <div className="mt-3 space-y-1">
 
                                         {/* 💸 Savings */}
                                         <div className="text-xs text-pink-700 bg-pink-50 py-1 rounded-md">
-                                            You save ₹{pkg.price - pkg.offerPrice} (
-                                            {Math.round(((pkg.price - pkg.offerPrice) / pkg.price) * 100)}% OFF)
+                                            You save ₹{discountAmount} (
+                                            {promotion.discountType === "percentage"
+                                                ? `${promotion.discountValue}% OFF`
+                                                : `₹${promotion.discountValue} OFF`
+                                            })
                                         </div>
 
                                         {/* ⏳ Countdown */}
-                                        {timeLeft > 0 ? (
-                                            <div className="text-[10px] text-red-600 bg-red-50 px-2 py-1 rounded-md inline-block">
-                                                ⏳ Ends in {formatTime(timeLeft)}
-                                            </div>
-                                        ) : (
-                                            <div className="text-[10px] text-gray-500 bg-gray-100 px-2 py-1 rounded-md inline-block">
-                                                Offer Expired
-                                            </div>
+                                        {promotion.showCountdown && (
+                                            <CountdownTimer endDate={promotion.endDate} />
                                         )}
 
-                                        {/* 🎁 First user */}
+                                        {/* 🎁 Title */}
                                         <div className="text-[10px] text-green-700 bg-green-50 px-2 py-1 rounded-md inline-block">
-                                           ⏳ Limited Time Offer
+                                            {promotion.title}
                                         </div>
                                     </div>
                                 )}
@@ -707,6 +1103,35 @@ export default function Services() {
                                     Visit Salon
                                 </button>
                             </div>
+                            {/* Salon Time Slots */}
+                            {mode === "salon" && (
+                                <div className="mb-4">
+                                    <p className="text-gray-600 mb-2">Select a Time Slot</p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {availableSlots.length > 0 ? (
+                                            availableSlots.map((slot) => (
+                                                <button
+                                                    key={slot.time}
+                                                    onClick={() => slot.available && setSelectedTimeSlot(slot.time)}
+                                                    disabled={!slot.available}
+                                                    className={`px-3 py-1 rounded-lg border ${selectedTimeSlot === slot.time
+                                                        ? "bg-[#D4AF37] text-white"
+                                                        : slot.available
+                                                            ? "border-gray-400 text-gray-700 hover:bg-[#D4AF37] hover:text-white cursor-pointer"
+                                                            : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
+                                                        }`}
+                                                >
+                                                    {slot.time} {!slot.available && "- Booked"}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-gray-500 col-span-3">
+                                                No slots available. Please choose another date.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Selected Services */}
                             <ul className="text-sm mb-4">
@@ -719,33 +1144,35 @@ export default function Services() {
                             <div className="mb-4">
                                 <p className="text-gray-600">Total Price</p>
 
-                                <p className="line-through text-gray-400">
-                                    ₹{totalOriginal}
-                                </p>
-
                                 <h3 className="text-2xl font-semibold text-[#D4AF37]">
                                     ₹{finalTotal}
                                 </h3>
 
                                 {discount > 0 && (
                                     <p className="text-green-600 text-sm">
-                                        Coupon applied: -₹{discount}
-                                    </p>
-                                )}
-
-                                {savings > 0 && (
-                                    <p className="text-green-600 text-sm">
-                                        You saved ₹{savings} 🎉
+                                        You saved ₹{discount} with coupon! 🎉
                                     </p>
                                 )}
                             </div>
                             {/* Inputs */}
                             <input
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 placeholder="Name"
                                 className="w-full border p-2 mb-3 rounded"
                             />
+
                             <input
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
                                 placeholder="Phone"
+                                className="w-full border p-2 mb-3 rounded"
+                            />
+
+                            <input
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email"
                                 className="w-full border p-2 mb-3 rounded"
                             />
 
@@ -755,48 +1182,59 @@ export default function Services() {
                                 </label>
                                 <input
                                     type="date"
-                                    value={selectedSlot}
-                                    onChange={(e) => setSelectedSlot(e.target.value)}
-                                    className="w-full border p-2 rounded"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
                                 />
                             </div>
                             {/* Time / Slots */}
-                            {mode === "home" ? (
-                                <div className="mb-3 cursor-pointer">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Select Time
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={selectedTime}
-                                        onChange={(e) => setSelectedTime(e.target.value)}
-                                        className="w-full border p-2 rounded cursor-pointer"
-                                    />
-                                </div>
-                            ) : (
+                            {mode === "salon" && (
                                 <div className="mb-3">
+
+                                    {/* 👇 Message when no date selected */}
+                                    {!selectedDate && (
+                                        <p className="text-sm text-red-500 mb-2">
+                                            Please select a date first
+                                        </p>
+                                    )}
+
                                     <p className="text-sm text-gray-600 mb-2">
                                         Available Slots
                                     </p>
+
                                     <div className="grid grid-cols-3 gap-2">
-                                        {[
-                                            "10:00 AM",
-                                            "11:00 AM",
-                                            "12:00 PM",
-                                            "2:00 PM",
-                                            "3:00 PM",
-                                            "5:00 PM",
-                                        ].map((slot) => (
-                                            <motion.button
-                                                key={slot}
-                                                onClick={() => setSelectedSlot(slot)}
-                                                className={`border rounded-lg py-2 cursor-pointer text-sm ${selectedSlot === slot ? "bg-[#D4AF37] text-white" : "hover:bg-[#D4AF37] hover:text-white"}`}
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                {slot}
-                                            </motion.button>
-                                        ))}
+
+                                        {/* 👇 Message when no date selected */}
+                                        {!selectedDate && (
+                                            <p className="text-sm text-red-500 col-span-3">
+                                                Please select a date first
+                                            </p>
+                                        )}
+
+                                        {selectedDate && availableSlots.length === 0 && (
+                                            <p className="text-sm text-gray-500 col-span-3">
+                                                No slots available for this date 😔
+                                            </p>
+                                        )}
+
+                                        {selectedDate && availableSlots.length > 0 && (
+                                            availableSlots.map((slot) => (
+                                                <motion.button
+                                                    key={slot.time}
+                                                    onClick={() => slot.available && setSelectedTimeSlot(slot.time)}
+                                                    disabled={!slot.available}
+                                                    className={`border rounded-lg py-2 text-sm transition-all duration-200 ${selectedTimeSlot === slot.time
+                                                        ? "bg-[#D4AF37] text-white"
+                                                        : slot.available
+                                                            ? "hover:bg-[#D4AF37] hover:text-white cursor-pointer border-gray-400 text-gray-700"
+                                                            : "cursor-not-allowed border-gray-300 text-gray-400 bg-gray-100"
+                                                    }`}
+                                                    whileHover={slot.available ? { scale: 1.05 } : {}}
+                                                    whileTap={slot.available ? { scale: 0.95 } : {}}
+                                                >
+                                                    {slot.time} {!slot.available && "- Booked"}
+                                                </motion.button>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -830,7 +1268,7 @@ export default function Services() {
                                 <div className="flex gap-2 mt-1">
                                     <input
                                         value={coupon}
-                                        onChange={(e) => setCoupon(e.target.value)}
+                                        onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                                         placeholder="Enter code (FIRST50)"
                                         className="flex-1 border p-2 rounded"
                                     />
@@ -848,8 +1286,12 @@ export default function Services() {
                                 )}
                             </div>
 
-                            <button className="w-full bg-[#D4AF37] text-white py-3 rounded-lg cursor-pointer">
-                                Confirm Booking
+                            <button
+                                onClick={handleBooking}
+                                disabled={loading}
+                                className="w-full bg-[#D4AF37] text-white py-3 rounded-lg cursor-pointer disabled:opacity-50"
+                            >
+                                {loading ? "Processing..." : "Confirm Booking"}
                             </button>
 
                             <button
@@ -862,6 +1304,14 @@ export default function Services() {
                     </motion.div>
                 )
             }
+            {showPaymentModal && (
+                <PaymentModal
+                    amount={finalTotal}
+                    loading={loading}
+                    onSelectMethod={handlePaymentMethod}
+                    onClose={() => setShowPaymentModal(false)}
+                />
+            )}
         </div >
     );
 }

@@ -33,6 +33,11 @@ export default function Home() {
       question: "How can I book a service?",
       answer: "Book easily via our website or call us.",
     },
+    {
+      question: "Do you offer training for beauticians?",
+      answer:
+        "Yes. BLISS Academy offers professional hands-on training for aspiring and working beauticians — see the Academy page for courses, duration, and how to enrol. Contact us for upcoming batch dates.",
+    },
   ];
 
   return (
@@ -212,6 +217,76 @@ export default function Home() {
           </motion.div>
         </div>
       </section >
+
+      {/* ACADEMY */}
+      <section className="bg-white border-y border-[#E8E2D9]/80 py-20">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -28 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55 }}
+            viewport={{ once: true }}
+            className="order-2 md:order-1 relative h-[300px] sm:h-[360px] rounded-2xl overflow-hidden shadow-lg"
+          >
+            <Image
+              src="/facial.jpg"
+              alt="Professional beauty training at BLISS Academy"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/25 to-transparent pointer-events-none" />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 28 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55 }}
+            viewport={{ once: true }}
+            className="order-1 md:order-2 space-y-5"
+          >
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#B8860B]">
+              BLISS Academy
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-semibold leading-tight text-[#2D2D2D]">
+              Professional training for beauticians
+            </h2>
+            <p className="text-gray-600 text-lg leading-relaxed">
+              We train the next generation of beauty professionals with the same standards we deliver
+              to our clients — hygiene, technique, and confidence. Perfect for beginners building a
+              career or experienced artists levelling up their skills.
+            </p>
+            <ul className="text-gray-600 text-sm space-y-2.5">
+              <li className="flex gap-2">
+                <span className="text-[#D4AF37] shrink-0">✔</span>
+                <span>Hands-on practice with guided demos and real salon scenarios</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-[#D4AF37] shrink-0">✔</span>
+                <span>Skin, hair, makeup fundamentals and advanced bridal techniques</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-[#D4AF37] shrink-0">✔</span>
+                <span>Hygiene, client consultation, and professional conduct</span>
+              </li>
+            </ul>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/academy"
+                className="inline-flex items-center justify-center bg-[#D4AF37] text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-[#c9a432] transition-colors"
+              >
+                View courses
+              </Link>
+              <Link
+                href="/services"
+                className="inline-flex items-center justify-center border border-[#2D2D2D]/20 px-6 py-3 rounded-xl text-sm font-medium text-[#2D2D2D] hover:border-[#D4AF37] hover:text-[#B8860B] transition-colors"
+              >
+                Explore services
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* SERVICES */}
       < section className="max-w-6xl mx-auto px-6 py-20" >

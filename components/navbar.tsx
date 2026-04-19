@@ -11,7 +11,9 @@ export default function Navbar() {
   const links = [
     { name: "Home", href: "/" },
     { name: "About Us", href: "/about" },
+    { name: "Academy", href: "/academy" },
     { name: "Our Services", href: "/services" },
+    { name: "Track Booking", href: "/track-booking" },
   ];
 
   return (
@@ -52,18 +54,19 @@ export default function Navbar() {
             </Link>
           </motion.div>
         ))}
-        {/* WhatsApp Button Desktop */}
-        <motion.a
-          href="https://wa.me/9939476088"
-          target="_blank"
-          rel="noopener noreferrer"
-          whileHover={{ scale: 1.05, backgroundColor: "#25D366" }}
+        {/* Contact — desktop */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           transition={{ duration: 0.3 }}
-          className="bg-[#D4AF37] flex items-center gap-2 text-white px-5 py-2 rounded-lg font-medium transition-all"
         >
-          Contact Us
-        </motion.a>
+          <Link
+            href="/contact"
+            className="bg-[#D4AF37] flex items-center gap-2 text-white px-5 py-2 rounded-lg font-medium transition-all hover:bg-[#c9a432]"
+          >
+            Contact Us
+          </Link>
+        </motion.div>
       </div>
 
       {/* Overlay Menu Toggle Button */}
@@ -135,19 +138,20 @@ export default function Navbar() {
               </motion.div>
             ))}
 
-            {/* WhatsApp Button */}
-            <motion.a
-              href="https://wa.me/9939476088"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.05, backgroundColor: "#25D366" }}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              onClick={() => setIsOpen(false)}
-              className="mt-8 bg-[#D4AF37] flex items-center gap-2 text-white px-8 py-3 rounded-lg text-xl font-medium transition"
+              className="mt-8"
             >
-              Contact Us
-            </motion.a>
+              <Link
+                href="/contact"
+                onClick={() => setIsOpen(false)}
+                className="bg-[#D4AF37] inline-flex items-center gap-2 text-white px-8 py-3 rounded-lg text-xl font-medium transition hover:bg-[#c9a432]"
+              >
+                Contact Us
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
