@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import { useEffect } from "react";
 import 'react-time-picker/dist/TimePicker.css';
 import PaymentModal from "@/components/PaymentModal";
+import BookingSuccessModal from "@/components/BookingSuccessModal";
 
 declare global {
     interface Window {
@@ -287,6 +288,19 @@ export default function Services() {
     const [availableSlots, setAvailableSlots] = useState<any[]>([]);
     const [activePromotions, setActivePromotions] = useState<any>({});
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [bookingSuccess, setBookingSuccess] = useState<{
+        bookingId: string;
+        finalAmount: number;
+        variant: "cod" | "online";
+    } | null>(null);
+    const isPastSelectedDate = (() => {
+        if (!selectedDate) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selected = new Date(selectedDate);
+        selected.setHours(0, 0, 0, 0);
+        return selected < today;
+    })();
 
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
@@ -436,53 +450,57 @@ export default function Services() {
     };
 
     const handlePaymentMethod = async (method: "online" | "cod") => {
+        let skipFinallyLoading = false;
         try {
             setLoading(true);
 
             const bookingPayload = buildBookingPayload();
             bookingPayload.paymentMethod = method;
 
-            // Step 1: Create booking
-            const bookingRes = await fetch(`${BACKEND_URL}/api/bookings`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(bookingPayload),
-            });
-            const bookingData = await bookingRes.json();
-
-            if (!bookingData.success) {
-                alert(`Booking Failed ❌\n${bookingData.message || ""}`);
-                return;
-            }
-
-            const { bookingId, finalAmount } = bookingData.booking;
-
             if (method === "cod") {
-                // COD: booking is confirmed immediately
-                alert(`Booking Confirmed! 🎉\nBooking ID: ${bookingId}\nPay ₹${finalAmount} at the time of service.\nReceipt sent to email 📧`);
+                const bookingRes = await fetch(`${BACKEND_URL}/api/bookings`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(bookingPayload),
+                });
+                const bookingData = await bookingRes.json();
+
+                if (!bookingData.success) {
+                    alert(`Booking Failed ❌\n${bookingData.message || ""}`);
+                    return;
+                }
+
+                const { bookingId, finalAmount } = bookingData.booking;
+                setBookingSuccess({
+                    bookingId,
+                    finalAmount,
+                    variant: "cod",
+                });
                 resetForm();
                 return;
             }
 
-            // Online: proceed with Razorpay
+            // Online: create Razorpay order only (no booking in DB until payment succeeds)
             const orderRes = await fetch(`${BACKEND_URL}/api/bookings/razorpay-order`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: finalAmount }),
+                body: JSON.stringify(bookingPayload),
             });
             const orderData = await orderRes.json();
 
             if (!orderData.success) {
-                alert("Failed to create payment order ❌");
+                alert(`Failed to start payment ❌\n${orderData.message || ""}`);
                 return;
             }
+
+            const frozenPayload = { ...bookingPayload, paymentMethod: "online" as const };
 
             const options = {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_1DP5mmOlF5G5ag",
                 amount: orderData.order.amount,
                 currency: orderData.order.currency,
                 name: "BLISS Beauty & Wellness",
-                description: `Booking: ${bookingId}`,
+                description: "BLISS Beauty booking",
                 order_id: orderData.order.id,
                 handler: async function (response: any) {
                     try {
@@ -490,30 +508,38 @@ export default function Services() {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
+                                ...frozenPayload,
                                 razorpayOrderId: response.razorpay_order_id,
                                 razorpayPaymentId: response.razorpay_payment_id,
                                 razorpaySignature: response.razorpay_signature,
-                                bookingId,
                             }),
                         });
                         const verifyData = await verifyRes.json();
 
                         if (verifyData.success) {
-                            alert(`Payment Successful! 🎉\nBooking ID: ${bookingId}\nReceipt sent to email 📧`);
+                            const bid = verifyData.booking?.bookingId || verifyData.booking?.id;
+                            const famt = verifyData.booking?.finalAmount ?? 0;
+                            setBookingSuccess({
+                                bookingId: bid,
+                                finalAmount: famt,
+                                variant: "online",
+                            });
                             resetForm();
                         } else {
-                            alert("Payment verification failed ❌\nPlease contact support.");
+                            alert(`Payment verification failed ❌\n${verifyData.message || "Please contact support."}`);
                         }
                     } catch (err) {
                         console.error("Verification error:", err);
                         alert("Payment verification error ❌\nPlease contact support.");
+                    } finally {
+                        setLoading(false);
                     }
                 },
                 prefill: { name, email, contact: phone },
                 theme: { color: "#D4AF37" },
                 modal: {
                     ondismiss: function () {
-                        alert("Payment cancelled. Your booking is on hold.");
+                        alert("Payment cancelled. No booking was created.");
                         setLoading(false);
                     },
                 },
@@ -525,12 +551,12 @@ export default function Services() {
                 setLoading(false);
             });
             razorpay.open();
-
+            skipFinallyLoading = true;
         } catch (error) {
             console.error(error);
             alert("Server Error ❌");
         } finally {
-            setLoading(false);
+            if (!skipFinallyLoading) setLoading(false);
         }
     };
 
@@ -781,12 +807,20 @@ export default function Services() {
 
                                                 {/* PRICE */}
                                                 <p className="text-gray-600 mb-2">
-                                                    <span className="line-through text-gray-400 mr-2">
-                                                        ₹{service.homePrice}
-                                                    </span>
-                                                    <span className="text-[#D4AF37] font-semibold">
-                                                        ₹{discountedHomePrice}
-                                                    </span>
+                                                    {hasPromotion ? (
+                                                        <>
+                                                            <span className="line-through text-gray-400 mr-2">
+                                                                ₹{service.homePrice}
+                                                            </span>
+                                                            <span className="text-[#D4AF37] font-semibold">
+                                                                ₹{discountedHomePrice}
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-[#2D2D2D] font-semibold">
+                                                            ₹{service.homePrice}
+                                                        </span>
+                                                    )}
                                                 </p>
 
                                                 {/* PROMOTION */}
@@ -892,12 +926,20 @@ export default function Services() {
                                 </h2>
 
                                 <div className="text-gray-600 mb-2">
-                                    <div className="line-through text-gray-400 mr-2">
-                                        ₹{service.price}
-                                    </div>
-                                    <div className="text-[#D4AF37] font-semibold">
-                                        ₹{discountedPrice}
-                                    </div>
+                                    {hasPromotion ? (
+                                        <>
+                                            <div className="line-through text-gray-400 mr-2">
+                                                ₹{service.price}
+                                            </div>
+                                            <div className="text-[#D4AF37] font-semibold">
+                                                ₹{discountedPrice}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-[#2D2D2D] font-semibold">
+                                            ₹{service.price}
+                                        </div>
+                                    )}
                                     {hasPromotion && (
                                         <div className="mt-3 space-y-1">
                                             {/* 💸 Savings */}
@@ -998,13 +1040,20 @@ export default function Services() {
                                     Full Bridal Package
                                 </p>
 
-                                <p className="text-gray-400 line-through">
-                                    ₹{pkg.price}
-                                </p>
-
-                                <p className="font-semibold text-lg text-[#D4AF37]">
-                                    ₹{discountedPrice}
-                                </p>
+                                {hasPromotion ? (
+                                    <>
+                                        <p className="text-gray-400 line-through">
+                                            ₹{pkg.price}
+                                        </p>
+                                        <p className="font-semibold text-lg text-[#D4AF37]">
+                                            ₹{discountedPrice}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <p className="font-semibold text-lg text-[#2D2D2D]">
+                                        ₹{pkg.price}
+                                    </p>
+                                )}
                                 {hasPromotion && (
                                     <div className="mt-3 space-y-1">
 
@@ -1112,21 +1161,23 @@ export default function Services() {
                                             availableSlots.map((slot) => (
                                                 <button
                                                     key={slot.time}
-                                                    onClick={() => slot.available && setSelectedTimeSlot(slot.time)}
-                                                    disabled={!slot.available}
-                                                    className={`px-3 py-1 rounded-lg border ${selectedTimeSlot === slot.time
+                                                    onClick={() => !isPastSelectedDate && slot.available && setSelectedTimeSlot(slot.time)}
+                                                    disabled={isPastSelectedDate || !slot.available}
+                                                    className={`px-3 py-1 rounded-lg border ${selectedTimeSlot === slot.time && !isPastSelectedDate
                                                         ? "bg-[#D4AF37] text-white"
-                                                        : slot.available
+                                                        : !isPastSelectedDate && slot.available
                                                             ? "border-gray-400 text-gray-700 hover:bg-[#D4AF37] hover:text-white cursor-pointer"
                                                             : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
                                                         }`}
                                                 >
-                                                    {slot.time} {!slot.available && "- Booked"}
+                                                    {slot.time} {isPastSelectedDate ? "- Expired" : !slot.available ? "- Booked" : ""}
                                                 </button>
                                             ))
                                         ) : (
                                             <p className="text-sm text-gray-500 col-span-3">
-                                                No slots available. Please choose another date.
+                                                {isPastSelectedDate
+                                                    ? "Past date selected. Slots are expired."
+                                                    : "No slots available. Please choose another date."}
                                             </p>
                                         )}
                                     </div>
@@ -1212,7 +1263,9 @@ export default function Services() {
 
                                         {selectedDate && availableSlots.length === 0 && (
                                             <p className="text-sm text-gray-500 col-span-3">
-                                                No slots available for this date 😔
+                                                {isPastSelectedDate
+                                                    ? "Past date selected. All slots are expired."
+                                                    : "No slots available for this date 😔"}
                                             </p>
                                         )}
 
@@ -1220,18 +1273,18 @@ export default function Services() {
                                             availableSlots.map((slot) => (
                                                 <motion.button
                                                     key={slot.time}
-                                                    onClick={() => slot.available && setSelectedTimeSlot(slot.time)}
-                                                    disabled={!slot.available}
-                                                    className={`border rounded-lg py-2 text-sm transition-all duration-200 ${selectedTimeSlot === slot.time
+                                                    onClick={() => !isPastSelectedDate && slot.available && setSelectedTimeSlot(slot.time)}
+                                                    disabled={isPastSelectedDate || !slot.available}
+                                                    className={`border rounded-lg py-2 text-sm transition-all duration-200 ${selectedTimeSlot === slot.time && !isPastSelectedDate
                                                         ? "bg-[#D4AF37] text-white"
-                                                        : slot.available
+                                                        : !isPastSelectedDate && slot.available
                                                             ? "hover:bg-[#D4AF37] hover:text-white cursor-pointer border-gray-400 text-gray-700"
                                                             : "cursor-not-allowed border-gray-300 text-gray-400 bg-gray-100"
                                                     }`}
-                                                    whileHover={slot.available ? { scale: 1.05 } : {}}
-                                                    whileTap={slot.available ? { scale: 0.95 } : {}}
+                                                    whileHover={!isPastSelectedDate && slot.available ? { scale: 1.05 } : {}}
+                                                    whileTap={!isPastSelectedDate && slot.available ? { scale: 0.95 } : {}}
                                                 >
-                                                    {slot.time} {!slot.available && "- Booked"}
+                                                    {slot.time} {isPastSelectedDate ? "- Expired" : !slot.available ? "- Booked" : ""}
                                                 </motion.button>
                                             ))
                                         )}
@@ -1310,6 +1363,14 @@ export default function Services() {
                     loading={loading}
                     onSelectMethod={handlePaymentMethod}
                     onClose={() => setShowPaymentModal(false)}
+                />
+            )}
+            {bookingSuccess && (
+                <BookingSuccessModal
+                    bookingId={bookingSuccess.bookingId}
+                    finalAmount={bookingSuccess.finalAmount}
+                    variant={bookingSuccess.variant}
+                    onClose={() => setBookingSuccess(null)}
                 />
             )}
         </div >

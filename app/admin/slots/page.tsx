@@ -23,6 +23,7 @@ function useDebounce(value: string, delay: number) {
 }
 
 export default function SlotsPage() {
+  const getTodayDate = () => new Date().toISOString().split("T")[0];
   const router = useRouter();
   const [allSlots, setAllSlots] = useState<Slot[]>([]); // full data from backend
   const [slots, setSlots] = useState<Slot[]>([]); // filtered data
@@ -31,18 +32,26 @@ export default function SlotsPage() {
 
   const [editSlotId, setEditSlotId] = useState<string | null>(null);
   const [editTime, setEditTime] = useState("");
-  const [editMax, setEditMax] = useState<number>(1);
+  const [editMax, setEditMax] = useState<string>("1");
   const [actionLoading, setActionLoading] = useState(false);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newDate, setNewDate] = useState("");
+  const [newDate, setNewDate] = useState(getTodayDate());
   const [newTime, setNewTime] = useState("");
-  const [newMax, setNewMax] = useState(1);
+  const [newMax, setNewMax] = useState<string>("1");
 
   // ✅ Filters
-  const [filterDate, setFilterDate] = useState("");
+  const [filterDate, setFilterDate] = useState(getTodayDate());
   const [searchTime, setSearchTime] = useState("");
   const debouncedSearchTime = useDebounce(searchTime, 400); // 400ms debounce
+  const isPastFilterDate = (() => {
+    if (!filterDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(filterDate);
+    selected.setHours(0, 0, 0, 0);
+    return selected < today;
+  })();
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
   const API = `${BACKEND_URL}/api`;
 
@@ -56,8 +65,8 @@ export default function SlotsPage() {
     return { Authorization: `Bearer ${token}` };
   };
 
-  const fetchSlots = async () => {
-    setLoading(true);
+  const fetchSlots = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
     try {
       const authHeaders = getAuthHeaders();
       if (!authHeaders) return;
@@ -92,7 +101,7 @@ export default function SlotsPage() {
       console.error(err);
       setError("Something went wrong");
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   };
   useEffect(() => {
@@ -109,6 +118,24 @@ export default function SlotsPage() {
   useEffect(() => {
     fetchSlots();
   }, [router, filterDate]); // search filter is handled locally
+
+  // Keep slots refreshed automatically.
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchSlots(false);
+    }, 30000);
+    return () => clearInterval(intervalId);
+  }, [filterDate]);
+
+  // Auto-select new date when day changes.
+  useEffect(() => {
+    const dayWatcherId = setInterval(() => {
+      const today = getTodayDate();
+      setFilterDate((prev) => (prev === today ? prev : today));
+      setNewDate((prev) => (prev === today ? prev : today));
+    }, 60000);
+    return () => clearInterval(dayWatcherId);
+  }, []);
 
   const handleToggleBlock = async (id: string) => {
     setActionLoading(true);
@@ -152,7 +179,8 @@ export default function SlotsPage() {
   };
 
   const handleUpdate = async (id: string) => {
-    if (!editTime || !editMax) return;
+    const parsedEditMax = Number(editMax);
+    if (!editTime || !editMax || Number.isNaN(parsedEditMax) || parsedEditMax < 1) return;
     setActionLoading(true);
     try {
       const authHeaders = getAuthHeaders();
@@ -162,7 +190,7 @@ export default function SlotsPage() {
         headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({
           time: formatTo12Hour(editTime),
-          maxBookings: editMax,
+          maxBookings: parsedEditMax,
         }),
       });
       const data = await res.json();
@@ -183,6 +211,11 @@ export default function SlotsPage() {
       alert("All fields are required");
       return;
     }
+    const parsedNewMax = Number(newMax);
+    if (Number.isNaN(parsedNewMax) || parsedNewMax < 1) {
+      alert("Max bookings must be at least 1");
+      return;
+    }
     setActionLoading(true);
     try {
       const authHeaders = getAuthHeaders();
@@ -193,7 +226,7 @@ export default function SlotsPage() {
         body: JSON.stringify({
           date: newDate,
           time: formatTo12Hour(newTime),
-          maxBookings: newMax,
+          maxBookings: parsedNewMax,
         }),
       });
       const data = await res.json();
@@ -201,7 +234,7 @@ export default function SlotsPage() {
         setShowCreateModal(false);
         setNewDate("");
         setNewTime("");
-        setNewMax(1);
+        setNewMax("1");
         fetchSlots();
       } else alert(data.message);
     } catch (err) {
@@ -218,6 +251,17 @@ export default function SlotsPage() {
     const ampm = h >= 12 ? "PM" : "AM";
     h = h % 12 || 12;
     return `${h}:${minute} ${ampm}`;
+  };
+
+  const formatTo24Hour = (time12h: string) => {
+    const match = time12h.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return "";
+    let hour = Number(match[1]);
+    const minute = match[2];
+    const period = match[3].toUpperCase();
+    if (period === "AM" && hour === 12) hour = 0;
+    if (period === "PM" && hour !== 12) hour += 12;
+    return `${String(hour).padStart(2, "0")}:${minute}`;
   };
 
   if (loading) return <p className="text-center py-20">Loading slots...</p>;
@@ -278,7 +322,7 @@ export default function SlotsPage() {
                 <input
                   type="number"
                   value={editMax}
-                  onChange={(e) => setEditMax(Number(e.target.value))}
+                  onChange={(e) => setEditMax(e.target.value)}
                   className="border p-2 rounded w-full"
                   placeholder="Max Bookings"
                   min={1}
@@ -291,17 +335,23 @@ export default function SlotsPage() {
                 {/* ✅ Status Badge */}
                 <p
                   className={`text-xs px-2 py-1 rounded mt-1 inline-block ${slot.isBlocked
-                      ? "bg-red-100 text-red-600"
-                      : slot.booked >= slot.maxBookings
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "bg-green-100 text-green-600"
+                      ? isPastFilterDate
+                        ? "bg-gray-200 text-gray-600"
+                        : "bg-red-100 text-red-600"
+                      : isPastFilterDate
+                        ? "bg-gray-200 text-gray-600"
+                        : slot.booked >= slot.maxBookings
+                          ? "bg-yellow-100 text-yellow-600"
+                          : "bg-green-100 text-green-600"
                     }`}
                 >
-                  {slot.isBlocked
-                    ? "Blocked"
-                    : slot.booked >= slot.maxBookings
-                      ? "Full"
-                      : "Open"}
+                  {isPastFilterDate
+                    ? "Closed"
+                    : slot.isBlocked
+                      ? "Blocked"
+                      : slot.booked >= slot.maxBookings
+                        ? "Full"
+                        : "Open"}
                 </p>
 
                 {/* ✅ Booking Count */}
@@ -316,8 +366,8 @@ export default function SlotsPage() {
                 <>
                   <button
                     onClick={() => handleUpdate(slot._id)}
-                    disabled={actionLoading}
-                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-white shadow-md hover:scale-105 transition-transform cursor-pointer"
+                    disabled={actionLoading || isPastFilterDate}
+                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-white shadow-md hover:scale-105 transition-transform cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Save
                   </button>
@@ -333,24 +383,26 @@ export default function SlotsPage() {
                   <button
                     onClick={() => {
                       setEditSlotId(slot._id);
-                      setEditTime(slot.time);
-                      setEditMax(slot.maxBookings || 1);
+                      setEditTime(formatTo24Hour(slot.time));
+                      setEditMax(String(slot.maxBookings || 1));
                     }}
-                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-white shadow-md hover:scale-105 transition-transform cursor-pointer"
+                    disabled={isPastFilterDate}
+                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-white shadow-md hover:scale-105 transition-transform cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleToggleBlock(slot._id)}
-                    className={`px-3 py-2 rounded-xl text-white shadow-md hover:scale-105 transition ${slot.isBlocked ? "bg-green-500" : "bg-red-500"
+                    disabled={isPastFilterDate}
+                    className={`px-3 py-2 rounded-xl text-white shadow-md hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed ${slot.isBlocked ? "bg-green-500" : "bg-red-500"
                       }`}
                   >
                     {slot.isBlocked ? "Unblock" : "Block"}
                   </button>
                   <button
-                    disabled={slot.booked > 0}
+                    disabled={slot.booked > 0 || isPastFilterDate}
                     onClick={() => handleDelete(slot._id)}
-                    className={`px-3 py-2 rounded-xl shadow-md transition ${slot.booked > 0
+                    className={`px-3 py-2 rounded-xl shadow-md transition ${slot.booked > 0 || isPastFilterDate
                       ? "bg-gray-300 cursor-not-allowed"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
@@ -381,12 +433,18 @@ export default function SlotsPage() {
             </button>
             <h2 className="text-2xl font-bold mb-4 text-center">Create New Slot</h2>
 
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date
+            </label>
             <input
               type="date"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
               className="w-full p-4 mb-4 border-2 border-gray-300 rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-900 font-medium transition cursor-pointer"
             />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Time
+            </label>
             <input
               type="time"
               placeholder="Time (e.g., 10:00 AM)"
@@ -394,11 +452,14 @@ export default function SlotsPage() {
               onChange={(e) => setNewTime(e.target.value)}
               className="w-full p-4 mb-4 border-2 border-gray-300 rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-900 font-medium transition"
             />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Max Bookings
+            </label>
             <input
               type="number"
               placeholder="Max Bookings"
               value={newMax}
-              onChange={(e) => setNewMax(Number(e.target.value))}
+              onChange={(e) => setNewMax(e.target.value)}
               min={1}
               className="w-full p-4 mb-4 border-2 border-gray-300 rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-900 font-medium transition"
             />

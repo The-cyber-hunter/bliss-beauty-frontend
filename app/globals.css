@@ -47,3 +47,23 @@ body {
   scrollbar-width: thin !important;
   scrollbar-color: #D4AF37 #f0f0f0 !important;
 }
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"],
+a,
+summary,
+label[for] {
+  cursor: pointer !important;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled,
+[role="button"][aria-disabled="true"],
+a[aria-disabled="true"] {
+  cursor: not-allowed !important;
+}

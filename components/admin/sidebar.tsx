@@ -9,6 +9,7 @@ const links = [
   { name: "Dashboard", href: "/admin" },
   { name: "Slots", href: "/admin/slots" },
   { name: "Bookings", href: "/admin/bookings" },
+  { name: "Enrollments", href: "/admin/enrollments" },
   { name: "Coupons", href: "/admin/offers" },
   { name: "Promotions", href: "/admin/promotions" },
 ];

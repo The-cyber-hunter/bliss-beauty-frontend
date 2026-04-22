@@ -9,7 +9,7 @@ import Footer from "@/components/footer";
 
 const PHONE_DISPLAY = "+91 9939476088";
 const PHONE_TEL = "+919939476088";
-const EMAIL = "info@blissbeauty.com";
+const EMAIL = "blissheavenofbeauty@gmail.com";
 const ADDRESS = "Sindhora Road, Natiniyadai Mandir, Varanasi";
 const MAPS_URL =
   "https://www.google.com/maps?q=Sindhora+Road+Natiniyadai+Mandir+Varanasi";
@@ -174,7 +174,7 @@ export default function ContactPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-[#2D2D2D] outline-none focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/20"
-                      placeholder="you@example.com"
+                      placeholder="blissheavenofbeauty@gmail.com"
                       autoComplete="email"
                     />
                   </div>

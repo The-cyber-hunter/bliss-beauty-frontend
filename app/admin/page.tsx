@@ -85,6 +85,14 @@ export default function Dashboard() {
 
   // Bookings are already filtered by selected date from backend
   const filteredBookings = bookings;
+  const isPastSelectedDate = (() => {
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const pickedDate = new Date(selectedDate);
+    pickedDate.setHours(0, 0, 0, 0);
+    return pickedDate < todayDate;
+  })();
+  const activeSlotsCount = isPastSelectedDate ? 0 : slots.filter((s) => !s.isBlocked).length;
 
   const stats = [
     {
@@ -97,7 +105,7 @@ export default function Dashboard() {
     },
     {
       title: "Active Slots",
-      value: slots.filter((s) => !s.isBlocked).length,
+      value: activeSlotsCount,
     },
     {
       title: "Cancelled Bookings",

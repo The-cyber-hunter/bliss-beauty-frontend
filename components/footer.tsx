@@ -74,10 +74,10 @@ export default function Footer() {
           </a>
 
           <a
-            href="mailto:info@blissbeauty.com"
+            href="mailto:blissheavenofbeauty@gmail.com"
             className="flex items-center gap-2 text-gray-300 text-sm hover:text-[#D4AF37] transition"
           >
-             <Mail size={18} /> info@blissbeauty.com
+             <Mail size={18} /> blissheavenofbeauty@gmail.com
           </a>
         </motion.div>
 

@@ -72,7 +72,14 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative h-[450px] rounded-3xl overflow-hidden shadow-lg"
         >
-          <Image src="/hero.jpg" alt="Beauty" fill className="object-cover" />
+          <Image
+            src="/hero.jpg"
+            alt="Beauty"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+          />
         </motion.div>
       </section>
 
@@ -249,25 +256,25 @@ export default function Home() {
               BLISS Academy
             </p>
             <h2 className="text-3xl sm:text-4xl font-semibold leading-tight text-[#2D2D2D]">
-              Professional training for beauticians
+              5+ professional beauty courses
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed">
-              We train the next generation of beauty professionals with the same standards we deliver
-              to our clients — hygiene, technique, and confidence. Perfect for beginners building a
-              career or experienced artists levelling up their skills.
+              Build your beauty career with structured training in skin, hair, and makeup.
+              From basic foundation to full professional mastery, our academy is designed for
+              beginners and working artists who want practical, job-ready skills.
             </p>
             <ul className="text-gray-600 text-sm space-y-2.5">
               <li className="flex gap-2">
                 <span className="text-[#D4AF37] shrink-0">✔</span>
-                <span>Hands-on practice with guided demos and real salon scenarios</span>
+                <span>Certification provided after successful course completion</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-[#D4AF37] shrink-0">✔</span>
-                <span>Skin, hair, makeup fundamentals and advanced bridal techniques</span>
+                <span>5+ course options: Basic, Makeup, Basic to Makeup, Hair Dresser, Full Course</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-[#D4AF37] shrink-0">✔</span>
-                <span>Hygiene, client consultation, and professional conduct</span>
+                <span>100% practical training with real salon workflow and client handling</span>
               </li>
             </ul>
             <div className="flex flex-wrap gap-3 pt-2">
@@ -307,7 +314,13 @@ export default function Home() {
               viewport={{ once: true }}
               whileHover={{ scale: 1.06 }}>
               <div className="relative h-[220px]">
-                <Image src={service.img} alt={service.name} fill className="object-cover" />
+                <Image
+                  src={service.img}
+                  alt={service.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-medium">{service.name}</h3>
@@ -359,6 +372,7 @@ export default function Home() {
             alt="Bridal Makeup"
             fill
             className="object-cover object-[50%_20%]"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </motion.div>
 
@@ -464,34 +478,73 @@ export default function Home() {
       </section >
 
       {/* FAQ */}
-      < section className="max-w-4xl mx-auto px-6 py-20" >
-        <h2 className="text-3xl font-semibold text-center mb-10">FAQs</h2>
+      <section className="w-full px-6 md:px-8 lg:px-10 py-20">
+        <div className="rounded-3xl bg-[#F5F1EB] p-6 md:p-10">
+          <div className="text-center mb-8 md:mb-10">
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[#B8860B] mb-2">
+              FAQs
+            </p>
+            <h2 className="text-3xl md:text-4xl font-semibold text-[#2D2D2D]">
+              Frequently asked questions
+            </h2>
+            <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto mt-3">
+              Common questions about our salon services, home appointments, and BLISS Academy training.
+            </p>
+          </div>
 
-        {
-          faqs.map((faq, index) => (
-            <div key={index} className="border-b py-4">
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex justify-between"
-              >
-                {faq.question}
-                <span>{openIndex === index ? "-" : "+"}</span>
-              </button>
-
-              {openIndex === index && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  transition={{ duration: 0.3 }}
-                  className="text-gray-600 mt-2"
+          <div className="grid lg:grid-cols-2 gap-4 items-start">
+            {faqs.map((faq, index) => {
+              const isOpen = openIndex === index;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: index * 0.05 }}
+                  className={`self-start rounded-2xl border transition-all ${
+                    isOpen
+                      ? "border-[#D4AF37]/60 bg-white shadow-sm"
+                      : "border-[#E8E2D9] bg-white/85"
+                  }`}
                 >
-                  {faq.answer}
-                </motion.p>
-              )}
-            </div>
-          ))
-        }
-      </section >
+                  <button
+                    onClick={() => setOpenIndex(isOpen ? null : index)}
+                    className="w-full flex items-start justify-between gap-4 text-left px-5 md:px-6 py-4 md:py-5"
+                    aria-expanded={isOpen}
+                  >
+                    <span className="text-[15px] md:text-[16px] font-semibold leading-snug text-[#2D2D2D]">
+                      {faq.question}
+                    </span>
+
+                    <span
+                      className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-base transition-transform duration-300 ${
+                        isOpen
+                          ? "border-[#D4AF37] text-[#B8860B] rotate-45 bg-[#D4AF37]/10"
+                          : "border-stone-300 text-stone-500 rotate-0"
+                      }`}
+                    >
+                      +
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <p className="px-5 md:px-6 pb-5 md:pb-6 text-gray-600 leading-relaxed text-sm md:text-[15px]">
+                        {faq.answer}
+                      </p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* CTA */}
       <motion.section
