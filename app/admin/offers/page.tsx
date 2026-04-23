@@ -4,6 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
+const serviceOptions = [
+  "Haircut",
+  "Shaving",
+  "Beard Set",
+  "Party Makeup",
+  "Engagement Makeup",
+  "Bridal Makeup",
+  "Bengali Bridal Makeup",
+  "South Indian Bridal Makeup",
+  "Basic Course",
+  "Makeup Course",
+  "Basic to Makeup",
+  "Hair Dresser Course",
+  "Full Course",
+];
+
 interface Coupon {
   _id?: string;
   code: string;
@@ -360,8 +376,14 @@ export default function CouponsPage() {
               type="text"
               placeholder="Service (optional, leave blank for all services)"
               value={service} onChange={(e) => setService(e.target.value)}
+              list="service-options"
               className="w-full p-4 mb-4 border-2 border-gray-300 rounded-xl"
             />
+            <datalist id="service-options">
+              {serviceOptions.map((option) => (
+                <option key={option} value={option} />
+              ))}
+            </datalist>
 
             {/* Discount Type Switch */}
             <div className="flex gap-4 mb-4">

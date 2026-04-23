@@ -433,6 +433,11 @@ export default function AcademyPage() {
 
             <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
               {courses.map((course, i) => (
+                (() => {
+                  const promo = getApplicableAcademyPromotion(course.title);
+                  const offer = getApplicableAcademyOffer(course.title);
+                  const autoPrice = getAutoDiscountedPrice(course);
+                  return (
                 <motion.article
                   key={course.title}
                   initial={{ opacity: 0, y: 24 }}
@@ -447,9 +452,33 @@ export default function AcademyPage() {
                       {course.level}
                     </span>
                   </div>
+                  {(promo || offer) && (
+                    <div className="mb-3 space-y-1">
+                      {promo && (
+                        <p className="text-xs inline-block px-2 py-1 rounded bg-green-50 text-green-700">
+                          {promo.title || "Academy Promotion"}
+                        </p>
+                      )}
+                      {offer && (
+                        <p className="text-xs inline-block px-2 py-1 rounded bg-blue-50 text-blue-700 ml-2">
+                          Offer Applied
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <p className="text-sm text-gray-500 mb-3 flex items-center gap-1.5">
                     <Clock className="h-4 w-4 text-[#D4AF37]" strokeWidth={2} />
                     {course.duration}
+                  </p>
+                  <p className="mb-3">
+                    {autoPrice < course.fee && (
+                      <span className="line-through text-gray-400 mr-2 text-sm">
+                        INR {course.fee.toLocaleString("en-IN")}
+                      </span>
+                    )}
+                    <span className="text-[#B8860B] font-semibold">
+                      INR {autoPrice.toLocaleString("en-IN")}
+                    </span>
                   </p>
                   <p className="text-gray-600 text-sm mb-4 leading-relaxed">{course.description}</p>
                   <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
@@ -470,6 +499,8 @@ export default function AcademyPage() {
                     Enroll online
                   </button>
                 </motion.article>
+                  );
+                })()
               ))}
             </div>
           </div>
@@ -500,6 +531,18 @@ export default function AcademyPage() {
                 </p>
                 {selectedCourseAutoPrice < selectedCourse.fee && (
                   <p className="text-xs text-green-700 mt-1">Offer/Promotion auto-applied</p>
+                )}
+                {(getApplicableAcademyPromotion(selectedCourse.title) || getApplicableAcademyOffer(selectedCourse.title)) && (
+                  <div className="mt-2 space-y-1">
+                    {getApplicableAcademyPromotion(selectedCourse.title) && (
+                      <p className="text-xs text-green-700">
+                        Promotion: {getApplicableAcademyPromotion(selectedCourse.title)?.title || "Academy Promotion"}
+                      </p>
+                    )}
+                    {getApplicableAcademyOffer(selectedCourse.title) && (
+                      <p className="text-xs text-blue-700">Special offer applied on this course</p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
