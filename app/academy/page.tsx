@@ -91,6 +91,44 @@ const academyHighlights = [
   "100% Practical Training",
 ];
 
+const CountdownTimer = ({ endDate }: { endDate: string }) => {
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  useEffect(() => {
+    const end = new Date(endDate).getTime();
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const remaining = Math.max(0, Math.floor((end - now) / 1000));
+      setTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [endDate]);
+
+  if (timeLeft <= 0) {
+    return (
+      <div className="text-[10px] text-gray-500 bg-gray-100 px-2 py-1 rounded-md inline-block">
+        Offer Expired
+      </div>
+    );
+  }
+
+  const formatTime = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="text-[10px] text-red-600 bg-red-50 px-2 py-1 rounded-md inline-block">
+      ⏳ Ends in {formatTime(timeLeft)}
+    </div>
+  );
+};
+
 export default function AcademyPage() {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
   const [selectedCourseId, setSelectedCourseId] = useState(courses[0].id);
@@ -119,6 +157,7 @@ export default function AcademyPage() {
       document.body.removeChild(script);
     };
   }, []);
+
 
   useEffect(() => {
     const fetchAcademyDeals = async () => {
@@ -149,6 +188,7 @@ export default function AcademyPage() {
 
   const getApplicableAcademyOffer = (courseTitle: string) =>
     activeOffers.find((o: any) => o.serviceName === courseTitle);
+
 
   const getAutoDiscountedPrice = (course: (typeof courses)[number]) => {
     let amount = course.fee;
@@ -455,9 +495,16 @@ export default function AcademyPage() {
                   {(promo || offer) && (
                     <div className="mb-3 space-y-1">
                       {promo && (
-                        <p className="text-xs inline-block px-2 py-1 rounded bg-green-50 text-green-700">
-                          {promo.title || "Academy Promotion"}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="text-xs inline-block px-2 py-1 rounded bg-green-50 text-green-700">
+                            {promo.title || "Academy Promotion"}
+                          </p>
+                          {promo.showCountdown && (
+                            <span className="ml-2 inline-block align-middle">
+                              <CountdownTimer endDate={promo.endDate} />
+                            </span>
+                          )}
+                        </div>
                       )}
                       {offer && (
                         <p className="text-xs inline-block px-2 py-1 rounded bg-blue-50 text-blue-700 ml-2">
@@ -535,9 +582,14 @@ export default function AcademyPage() {
                 {(getApplicableAcademyPromotion(selectedCourse.title) || getApplicableAcademyOffer(selectedCourse.title)) && (
                   <div className="mt-2 space-y-1">
                     {getApplicableAcademyPromotion(selectedCourse.title) && (
-                      <p className="text-xs text-green-700">
-                        Promotion: {getApplicableAcademyPromotion(selectedCourse.title)?.title || "Academy Promotion"}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-xs text-green-700">
+                          Promotion: {getApplicableAcademyPromotion(selectedCourse.title)?.title || "Academy Promotion"}
+                        </p>
+                        {getApplicableAcademyPromotion(selectedCourse.title)?.showCountdown && (
+                          <CountdownTimer endDate={getApplicableAcademyPromotion(selectedCourse.title)?.endDate} />
+                        )}
+                      </div>
                     )}
                     {getApplicableAcademyOffer(selectedCourse.title) && (
                       <p className="text-xs text-blue-700">Special offer applied on this course</p>
