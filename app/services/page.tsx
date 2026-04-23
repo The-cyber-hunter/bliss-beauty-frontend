@@ -105,6 +105,7 @@ const servicesData = [
             { name: "Blossom Kochhar Facial", homePrice: 1900, salonPrice: 1800, offer: 200 },
             { name: "Korean Glass Facial", homePrice: 3100, salonPrice: 3000, offer: 200 },
             { name: "Lotus Professional Facial", homePrice: 2600, salonPrice: 2500, offer: 200 },
+            { name: "O3 Facial", homePrice: 2800, salonPrice: 2750, offer: 0 },
             { name: "O3+ Bridal Facial Kit", homePrice: 2600, salonPrice: 2500, offer: 200 },
             { name: "Ozone Facial", homePrice: 1900, salonPrice: 1800, offer: 200 },
         ]
@@ -147,6 +148,16 @@ const servicesData = [
             { name: "Full Leg Wax(Chocolate)", homePrice: 900, salonPrice: 800, offer: 50 },
             { name: "Underarm wax(Chocolate)", homePrice: 200, salonPrice: 100, offer: 30 },
             { name: "Full Body Wax(Chocolate)", homePrice: 2600, salonPrice: 2500, offer: 300 },
+            { name: "Rica Chocolate Wax (Full Hand)", homePrice: 600, salonPrice: 550, offer: 0 },
+            { name: "Rica Chocolate Wax (Half Hand)", homePrice: 400, salonPrice: 350, offer: 0 },
+            { name: "Rica Chocolate Wax (Full Leg)", homePrice: 900, salonPrice: 850, offer: 0 },
+            { name: "Rica Chocolate Wax (Half Leg)", homePrice: 600, salonPrice: 550, offer: 0 },
+            { name: "Rica White Chocolate Wax (Full Hand)", homePrice: 650, salonPrice: 600, offer: 0 },
+            { name: "Rica White Chocolate Wax (Half Hand)", homePrice: 500, salonPrice: 450, offer: 0 },
+            { name: "Rica White Chocolate Wax (Full Leg)", homePrice: 950, salonPrice: 900, offer: 0 },
+            { name: "Rica White Chocolate Wax (Half Leg)", homePrice: 650, salonPrice: 600, offer: 0 },
+            { name: "Brazilian Full Face Wax", homePrice: 500, salonPrice: 450, offer: 0 },
+            { name: "Brazilian Underarms Wax", homePrice: 250, salonPrice: 200, offer: 0 },
         ]
     },
     {
@@ -181,6 +192,7 @@ const servicesData = [
             { name: "Pearl Clean-Up", homePrice: 700, salonPrice: 600, offer: 100 },
             { name: "Gold Clean-Up", homePrice: 800, salonPrice: 700, offer: 100 },
             { name: "Diamond Clean-Up", homePrice: 1100, salonPrice: 1000, offer: 100 },
+            { name: "O3 Clean-Up", homePrice: 1000, salonPrice: 950, offer: 0 },
         ]
 
     }
