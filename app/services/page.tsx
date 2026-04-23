@@ -39,10 +39,11 @@ const CountdownTimer = ({ endDate }: { endDate: string }) => {
     }
 
     const formatTime = (seconds: number) => {
-        const hrs = Math.floor(seconds / 3600);
+        const days = Math.floor(seconds / 86400);
+        const hrs = Math.floor((seconds % 86400) / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
-        return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+        return `${days.toString().padStart(2, "0")}:${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
 
     return (

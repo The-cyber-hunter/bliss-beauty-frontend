@@ -189,10 +189,12 @@ export default function PromotionsPage() {
     const total = new Date(end).getTime() - now;
     if (total <= 0) return "Expired";
     const days = Math.floor(total / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((total / (1000 * 60)) % 60);
-    const seconds = Math.floor((total / 1000) % 60);
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    const hours = Math.floor((total % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((total % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((total % (1000 * 60)) / 1000);
+    return `${days.toString().padStart(2, "0")}:${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
   // ========================== SAVE PROMOTION ==========================
