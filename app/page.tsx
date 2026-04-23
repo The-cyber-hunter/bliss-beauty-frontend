@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 export default function Home() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const services = [
     { name: "Hair Styling", img: "/haircut.jpg" },
@@ -40,8 +41,66 @@ export default function Home() {
     },
   ];
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "BLISS Beauty Salon",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/services?query={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "BeautySalon",
+    name: "BLISS Beauty Salon",
+    url: siteUrl,
+    image: `${siteUrl}/hero.jpg`,
+    description:
+      "Premium beauty salon and at-home beauty services including bridal makeup, facials, hair, and grooming.",
+    telephone: "+91-9939476088",
+    email: "blissheavenofbeauty@gmail.com",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Sindhora Road, Natiniyadai Mandir",
+      addressLocality: "Varanasi",
+      addressCountry: "IN",
+    },
+    areaServed: "India",
+    priceRange: "INR",
+    sameAs: [],
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
    <div className="min-h-screen flex flex-col bg-[#F9F8F7] text-[#2D2D2D]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Navbar />
       {/* HERO */}
       <section className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">

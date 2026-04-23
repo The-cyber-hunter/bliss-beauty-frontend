@@ -47,6 +47,9 @@ export default function Footer() {
             <li>
               <Link href="/contact" className="hover:text-[#D4AF37]">Contact</Link>
             </li>
+            <li>
+              <Link href="/track-booking" className="hover:text-[#D4AF37]">Track Booking</Link>
+            </li>
           </ul>
         </motion.div>
 
@@ -93,6 +96,7 @@ export default function Footer() {
               <a
                 href="https://www.facebook.com/61583730351672/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
               >
                 <FaFacebookF size={16} />
@@ -101,6 +105,7 @@ export default function Footer() {
               <a
                 href="https://www.instagram.com/bliss_salon01?igsh=MTZ6ODIzNzljN3kxZA=="
                 target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
               >
                 <FaInstagram size={16} />
@@ -109,6 +114,7 @@ export default function Footer() {
               <a
                 href="https://twitter.com/yourpage"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-full bg-white/10 hover:bg-[#D4AF37] hover:text-black transition"
               >
                 <FaTwitter size={16} />

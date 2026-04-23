@@ -218,18 +218,30 @@ const bridalPackages = [
 
 /** Turn lat/lng into a readable address (no placeholder API key). */
 async function reverseGeocodeToAddress(lat: number, lon: number): Promise<string> {
-    const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (googleKey) {
-        try {
-            const res = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${googleKey}`
-            );
-            const data = await res.json();
-            const addr = data.results?.[0]?.formatted_address;
-            if (addr) return addr;
-        } catch {
-            /* fall through */
+    const joinUnique = (parts: Array<string | undefined | null>) =>
+        parts
+            .map((p) => (typeof p === "string" ? p.trim() : ""))
+            .filter((p, i, arr) => p && arr.indexOf(p) === i)
+            .join(", ");
+
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&zoom=18`
+        );
+        if (res.ok) {
+            const d = await res.json();
+            const line = d.display_name || joinUnique([
+                joinUnique([d.address?.house_number, d.address?.road]),
+                d.address?.suburb || d.address?.neighbourhood,
+                d.address?.city || d.address?.town || d.address?.village,
+                d.address?.state,
+                d.address?.postcode,
+                d.address?.country,
+            ]);
+            if (line) return line;
         }
+    } catch {
+        /* fall through */
     }
 
     try {
@@ -238,10 +250,14 @@ async function reverseGeocodeToAddress(lat: number, lon: number): Promise<string
         );
         if (res.ok) {
             const d = await res.json();
-            const parts = [d.locality, d.city, d.principalSubdivision, d.postcode, d.countryName].filter(
-                (p: string, i: number, arr: string[]) => p && arr.indexOf(p) === i
-            );
-            const line = parts.join(", ");
+            const line = joinUnique([
+                d.localityInfo?.informative?.[0]?.name,
+                d.locality,
+                d.city,
+                d.principalSubdivision,
+                d.postcode,
+                d.countryName,
+            ]);
             if (line) return line;
         }
     } catch {
@@ -255,11 +271,15 @@ async function reverseGeocodeToAddress(lat: number, lon: number): Promise<string
             const p = data.features?.[0]?.properties;
             if (p) {
                 const street = [p.housenumber, p.street].filter(Boolean).join(" ").trim();
-                const bits = [street || p.name, p.district, p.city || p.county, p.state, p.postcode, p.country].filter(
-                    Boolean
-                ) as string[];
-                const unique = bits.filter((x, i) => bits.indexOf(x) === i);
-                if (unique.length) return unique.join(", ");
+                const line = joinUnique([
+                    street || p.name,
+                    p.district,
+                    p.city || p.county,
+                    p.state,
+                    p.postcode,
+                    p.country,
+                ]);
+                if (line) return line;
             }
         }
     } catch {
