@@ -99,6 +99,11 @@ export default function AcademyPage() {
   const [phone, setPhone] = useState("");
   const [processing, setProcessing] = useState(false);
   const [enrollMessage, setEnrollMessage] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [activeOffers, setActiveOffers] = useState<any[]>([]);
+  const [activePromotions, setActivePromotions] = useState<any[]>([]);
 
   const selectedCourse = useMemo(
     () => courses.find((course) => course.id === selectedCourseId) ?? courses[0],
@@ -114,6 +119,60 @@ export default function AcademyPage() {
       document.body.removeChild(script);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchAcademyDeals = async () => {
+      try {
+        const [offersRes, promosRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/academy-enrollments/active-offers`, { cache: "no-store" }),
+          fetch(`${BACKEND_URL}/api/academy-enrollments/active-promotions`, { cache: "no-store" }),
+        ]);
+        const [offersData, promosData] = await Promise.all([offersRes.json(), promosRes.json()]);
+        if (offersData.success) setActiveOffers(offersData.offers || []);
+        if (promosData.success) setActivePromotions(promosData.promotions || []);
+      } catch (error) {
+        console.error("Failed to fetch academy deals:", error);
+      }
+    };
+    fetchAcademyDeals();
+  }, [BACKEND_URL]);
+
+  useEffect(() => {
+    setCoupon("");
+    setDiscount(0);
+    setCouponMsg("");
+  }, [selectedCourseId]);
+
+  const getApplicableAcademyPromotion = (courseTitle: string) =>
+    activePromotions.find((p: any) => p.serviceName === courseTitle) ||
+    activePromotions.find((p: any) => !p.serviceName);
+
+  const getApplicableAcademyOffer = (courseTitle: string) =>
+    activeOffers.find((o: any) => o.serviceName === courseTitle);
+
+  const getAutoDiscountedPrice = (course: (typeof courses)[number]) => {
+    let amount = course.fee;
+    const promo = getApplicableAcademyPromotion(course.title);
+    if (promo) {
+      const d =
+        promo.discountType === "percentage"
+          ? Math.round((amount * promo.discountValue) / 100)
+          : promo.discountValue;
+      amount = Math.max(amount - d, 0);
+    }
+    const offer = getApplicableAcademyOffer(course.title);
+    if (offer) {
+      const d =
+        offer.discountType === "percentage"
+          ? Math.round((amount * offer.discountValue) / 100)
+          : offer.discountValue;
+      amount = Math.max(amount - d, 0);
+    }
+    return amount;
+  };
+
+  const selectedCourseAutoPrice = getAutoDiscountedPrice(selectedCourse);
+  const finalPayable = Math.max(selectedCourseAutoPrice - discount, 0);
 
   const handleOpenEnroll = (courseId: string) => {
     setSelectedCourseId(courseId);
@@ -149,6 +208,7 @@ export default function AcademyPage() {
           name: name.trim(),
           email: email.trim(),
           phone: phone.trim(),
+          couponCode: discount > 0 ? coupon.trim() : undefined,
         }),
       });
       const orderData = await orderRes.json();
@@ -181,6 +241,7 @@ export default function AcademyPage() {
               name: name.trim(),
               email: email.trim(),
               phone: phone.trim(),
+              couponCode: discount > 0 ? coupon.trim() : undefined,
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
@@ -218,6 +279,36 @@ export default function AcademyPage() {
       console.error(error);
       setEnrollMessage("Unable to complete enrollment right now. Please try again.");
       setProcessing(false);
+    }
+  };
+
+  const applyAcademyCoupon = async () => {
+    if (!coupon.trim()) {
+      setDiscount(0);
+      setCouponMsg("Please enter a coupon code");
+      return;
+    }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/academy-enrollments/validate-coupon`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: coupon.trim(),
+          courseId: selectedCourse.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDiscount(data.discount || 0);
+        setCouponMsg(`Coupon applied. You saved INR ${data.discount || 0}.`);
+      } else {
+        setDiscount(0);
+        setCouponMsg(data.message || "Invalid coupon");
+      }
+    } catch (error) {
+      console.error("Academy coupon validation error:", error);
+      setDiscount(0);
+      setCouponMsg("Error validating coupon");
     }
   };
 
@@ -400,8 +491,16 @@ export default function AcademyPage() {
                 <h3 className="text-xl font-semibold">{selectedCourse.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">{selectedCourse.duration}</p>
                 <p className="text-[#B8860B] text-lg font-semibold mt-2">
-                  INR {selectedCourse.fee.toLocaleString("en-IN")}
+                  {selectedCourseAutoPrice < selectedCourse.fee && (
+                    <span className="line-through text-gray-400 mr-2 text-base">
+                      INR {selectedCourse.fee.toLocaleString("en-IN")}
+                    </span>
+                  )}
+                  INR {selectedCourseAutoPrice.toLocaleString("en-IN")}
                 </p>
+                {selectedCourseAutoPrice < selectedCourse.fee && (
+                  <p className="text-xs text-green-700 mt-1">Offer/Promotion auto-applied</p>
+                )}
               </div>
             </div>
 
@@ -459,8 +558,33 @@ export default function AcademyPage() {
               >
                 {processing
                   ? "Processing payment..."
-                  : `Pay INR ${selectedCourse.fee.toLocaleString("en-IN")} & Enroll`}
+                  : `Pay INR ${finalPayable.toLocaleString("en-IN")} & Enroll`}
               </button>
+
+              <div className="rounded-xl border border-stone-200 p-3">
+                <label className="block text-sm text-gray-700 mb-1">Coupon code</label>
+                <div className="flex gap-2">
+                  <input
+                    value={coupon}
+                    onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+                    className="flex-1 rounded-lg border border-stone-300 px-3 py-2"
+                    placeholder="Enter coupon"
+                  />
+                  <button
+                    type="button"
+                    onClick={applyAcademyCoupon}
+                    className="rounded-lg bg-black text-white px-4 py-2 text-sm"
+                  >
+                    Apply
+                  </button>
+                </div>
+                {couponMsg && <p className="text-xs mt-2 text-green-700">{couponMsg}</p>}
+                {discount > 0 && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Final payable: INR {finalPayable.toLocaleString("en-IN")}
+                  </p>
+                )}
+              </div>
 
               {enrollMessage && (
                 <p className="text-sm text-gray-700 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">

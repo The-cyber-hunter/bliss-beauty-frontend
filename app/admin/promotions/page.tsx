@@ -79,12 +79,19 @@ const serviceOptionsByType = {
     "Bengali Bridal Makeup",
     "South Indian Bridal Makeup",
   ],
+  academy: [
+    "Basic Course",
+    "Makeup Course",
+    "Basic to Makeup",
+    "Hair Dresser Course",
+    "Full Course",
+  ],
 };
 
 interface Promotion {
   _id?: string;
   title: string;
-  serviceType: "regular" | "makeup" | "bridal";
+  serviceType: "regular" | "makeup" | "bridal" | "academy";
   serviceName: string;
   discountType?: "percentage" | "amount";
   discountValue?: number;
@@ -104,7 +111,7 @@ export default function PromotionsPage() {
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
 
   const [title, setTitle] = useState("");
-  const [serviceType, setServiceType] = useState<"regular" | "makeup" | "bridal">("regular");
+  const [serviceType, setServiceType] = useState<"regular" | "makeup" | "bridal" | "academy">("regular");
   const [serviceName, setServiceName] = useState("");
   const [discountType, setDiscountType] = useState<"percentage" | "amount">("percentage");
   const [discountValue, setDiscountValue] = useState<number>(0);
@@ -466,12 +473,13 @@ export default function PromotionsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
               <select
                 value={serviceType}
-                onChange={(e) => setServiceType(e.target.value as "regular" | "makeup" | "bridal")}
+                onChange={(e) => setServiceType(e.target.value as "regular" | "makeup" | "bridal" | "academy")}
                 className="w-full p-2 border-2 border-gray-300 rounded-xl"
               >
                 <option value="regular">Regular Services</option>
                 <option value="makeup">Makeup Services</option>
                 <option value="bridal">Bridal Packages</option>
+                <option value="academy">Academy Courses</option>
               </select>
             </div>
 
