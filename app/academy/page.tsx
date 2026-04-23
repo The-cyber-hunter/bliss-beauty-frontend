@@ -657,7 +657,7 @@ export default function AcademyPage() {
               </button>
 
               <div className="rounded-xl border border-stone-200 p-3">
-                <label className="block text-sm text-gray-700 mb-1">Coupon code</label>
+                <label className="block text-sm text-gray-700 mb-1">Coupon code(if you have any valid coupon)</label>
                 <div className="flex gap-2">
                   <input
                     value={coupon}
