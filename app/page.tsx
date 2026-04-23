@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 export default function Home() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blissalon.com";
 
   const services = [
     { name: "Hair Styling", img: "/haircut.jpg" },
