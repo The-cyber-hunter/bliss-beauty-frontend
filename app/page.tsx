@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import LaunchModal from "@/components/LaunchModal";
+import AnnouncementBar from "@/components/AnnouncementBar";
 
 export default function Home() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -89,6 +91,8 @@ export default function Home() {
 
   return (
    <div className="min-h-screen flex flex-col bg-[#F9F8F7] text-[#2D2D2D]">
+      <LaunchModal />
+      <AnnouncementBar ctaHref="/services" ctaLabel="Book now" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}

@@ -305,6 +305,7 @@ export default function Services() {
     const [selectedServices, setSelectedServices] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [mode, setMode] = useState<"home" | "salon">("home");
+    const [attemptedConfirm, setAttemptedConfirm] = useState(false);
     const [selectedDate, setSelectedDate] = useState(""); // from input
     const [selectedTimeSlot, setSelectedTimeSlot] = useState(""); // for salon slots only
     const [address, setAddress] = useState("");
@@ -334,6 +335,19 @@ export default function Services() {
     })();
 
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const m = params.get("mode");
+            if (m === "home" || m === "salon") setMode(m);
+
+            const tab = params.get("tab");
+            if (tab === "regular" || tab === "makeup" || tab === "bridal") setActiveTab(tab);
+        } catch {
+            // ignore
+        }
+    }, []);
 
 
     useEffect(() => {
@@ -427,6 +441,7 @@ export default function Services() {
 
     const handleBooking = () => {
         // ✅ Validation only — then show payment modal
+        setAttemptedConfirm(true);
         if (!name || !phone || !email || !selectedDate || (mode === "salon" && !selectedTimeSlot)) {
             alert("Please fill all required fields ⚠️");
             return;
@@ -1136,7 +1151,10 @@ export default function Services() {
                             {selectedServices.length} services selected
                         </p>
                         <button
-                            onClick={() => setShowModal(true)}
+                            onClick={() => {
+                                setShowModal(true);
+                                setAttemptedConfirm(false);
+                            }}
                             className="bg-[#D4AF37] text-white px-6 py-2 rounded-lg cursor-pointer "
                         >
                             Continue
@@ -1183,40 +1201,9 @@ export default function Services() {
                                     Visit Salon
                                 </button>
                             </div>
-                            {/* Salon Time Slots */}
-                            {mode === "salon" && (
-                                <div className="mb-4">
-                                    <p className="text-gray-600 mb-2">Select a Time Slot</p>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {availableSlots.length > 0 ? (
-                                            availableSlots.map((slot) => (
-                                                <button
-                                                    key={slot.time}
-                                                    onClick={() => !isPastSelectedDate && slot.available && setSelectedTimeSlot(slot.time)}
-                                                    disabled={isPastSelectedDate || !slot.available}
-                                                    className={`px-3 py-1 rounded-lg border ${selectedTimeSlot === slot.time && !isPastSelectedDate
-                                                        ? "bg-[#D4AF37] text-white"
-                                                        : !isPastSelectedDate && slot.available
-                                                            ? "border-gray-400 text-gray-700 hover:bg-[#D4AF37] hover:text-white cursor-pointer"
-                                                            : "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100"
-                                                        }`}
-                                                >
-                                                    {slot.time} {isPastSelectedDate ? "- Expired" : !slot.available ? "- Booked" : ""}
-                                                </button>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-gray-500 col-span-3">
-                                                {isPastSelectedDate
-                                                    ? "Past date selected. Slots are expired."
-                                                    : "No slots available. Please choose another date."}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Selected Services */}
-                            <ul className="text-sm mb-4">
+                            <ul className="text-sm mb-4 list-disc pl-5 space-y-1">
                                 {selectedServices.map((s, i) => (
                                     <li key={i}>{s.name}</li>
                                 ))}
@@ -1273,7 +1260,7 @@ export default function Services() {
                                 <div className="mb-3">
 
                                     {/* 👇 Message when no date selected */}
-                                    {!selectedDate && (
+                                    {attemptedConfirm && !selectedDate && (
                                         <p className="text-sm text-red-500 mb-2">
                                             Please select a date first
                                         </p>
@@ -1286,7 +1273,7 @@ export default function Services() {
                                     <div className="grid grid-cols-3 gap-2">
 
                                         {/* 👇 Message when no date selected */}
-                                        {!selectedDate && (
+                                        {attemptedConfirm && !selectedDate && (
                                             <p className="text-sm text-red-500 col-span-3">
                                                 Please select a date first
                                             </p>
@@ -1379,7 +1366,10 @@ export default function Services() {
                             </button>
 
                             <button
-                                onClick={() => setShowModal(false)}
+                                onClick={() => {
+                                    setShowModal(false);
+                                    setAttemptedConfirm(false);
+                                }}
                                 className="mt-3 text-sm text-gray-500 cursor-pointer py-3 rounded-lg border w-full"
                             >
                                 Close

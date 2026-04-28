@@ -21,11 +21,11 @@ export default function Navbar() {
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: "easeOut" }}
-      className="flex justify-between items-center px-8 py-5 bg-gradient-to-r from-[#F5F1EC]/80 via-[#F8F5F0]/70 to-[#F5F1EC]/80  border-b border-[#E8E2D9]/60 sticky top-0 z-50 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+      className="flex justify-between items-center px-8 py-5 bg-gradient-to-r from-[#F5F1EC]/80 via-[#F8F5F0]/70 to-[#F5F1EC]/80  border-b border-[#E8E2D9]/60 sticky top-0 z-50 shadow-[0_8px_30px_rgba(0,0,0,0.05)]"
+    >
       <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent" />
       {/* Logo */}
-      <Link
-        href="/">
+      <Link href="/">
         <div className="relative h-12 w-auto">
           <Image
             src="/logo.png"

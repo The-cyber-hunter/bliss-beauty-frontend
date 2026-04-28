@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Phone, Mail, ChevronRight } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
@@ -33,22 +33,40 @@ export default function Footer() {
           <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
           <ul className="text-gray-300 text-sm space-y-2">
             <li>
-              <Link href="/" className="hover:text-[#D4AF37]">Home</Link>
+              <Link href="/" className="inline-flex items-center gap-2 hover:text-[#D4AF37]">
+                <ChevronRight size={16} />
+                Home
+              </Link>
             </li>
             <li>
-              <Link href="/services" className="hover:text-[#D4AF37]">Services</Link>
+              <Link href="/services" className="inline-flex items-center gap-2 hover:text-[#D4AF37]">
+                <ChevronRight size={16} />
+                Services
+              </Link>
             </li>
             <li>
-              <Link href="/about" className="hover:text-[#D4AF37]">About Us</Link>
+              <Link href="/about" className="inline-flex items-center gap-2 hover:text-[#D4AF37]">
+                <ChevronRight size={16} />
+                About Us
+              </Link>
             </li>
             <li>
-              <Link href="/academy" className="hover:text-[#D4AF37]">Academy</Link>
+              <Link href="/academy" className="inline-flex items-center gap-2 hover:text-[#D4AF37]">
+                <ChevronRight size={16} />
+                Academy
+              </Link>
             </li>
             <li>
-              <Link href="/contact" className="hover:text-[#D4AF37]">Contact</Link>
+              <Link href="/contact" className="inline-flex items-center gap-2 hover:text-[#D4AF37]">
+                <ChevronRight size={16} />
+                Contact
+              </Link>
             </li>
             <li>
-              <Link href="/track-booking" className="hover:text-[#D4AF37]">Track Booking</Link>
+              <Link href="/track-booking" className="inline-flex items-center gap-2 hover:text-[#D4AF37]">
+                <ChevronRight size={16} />
+                Track Booking
+              </Link>
             </li>
           </ul>
         </motion.div>
