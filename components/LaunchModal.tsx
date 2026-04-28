@@ -225,7 +225,7 @@ export default function LaunchModal(props: {
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/50" />
       <motion.div
-        className="relative w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/10"
+        className="relative w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/10 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
         initial={{ scale: 0.92, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -249,7 +249,7 @@ export default function LaunchModal(props: {
 
         <div className="relative z-10">
           {/* Header */}
-          <div className="px-7 pt-8 sm:px-9 sm:pt-9">
+          <div className="px-5 pt-6 sm:px-9 sm:pt-9">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF7DB] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8A6B00] ring-1 ring-[#D4AF37]/25">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
               {content.eyebrow}
@@ -261,14 +261,14 @@ export default function LaunchModal(props: {
             >
               {content.title}
             </h2>
-            <p id={descriptionId} className="mt-3 text-[15px] sm:text-[16px] text-gray-600 leading-relaxed max-w-xl">
+            <p id={descriptionId} className="mt-3 text-[14px] sm:text-[16px] text-gray-600 leading-relaxed max-w-xl">
               {content.description}
             </p>
           </div>
 
           {/* Deals slider */}
           {dealsLoading && (
-            <div className="px-7 mt-6 sm:px-9">
+            <div className="px-5 mt-5 sm:px-9">
               <div className="rounded-3xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FFF3C2] via-white to-white p-5 shadow-sm">
                 <p className="text-sm text-gray-700">Loading offers…</p>
               </div>
@@ -276,7 +276,7 @@ export default function LaunchModal(props: {
           )}
 
           {!dealsLoading && activeDeal && (
-            <div className="px-7 mt-6 sm:px-9">
+            <div className="px-5 mt-5 sm:px-9">
               <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FFF3C2] via-white to-white p-5 shadow-sm">
                 <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-[#D4AF37]/20 blur-3xl" />
 
@@ -345,7 +345,7 @@ export default function LaunchModal(props: {
           )}
 
           {!dealsLoading && !activeDeal && (
-            <div className="px-7 mt-6 sm:px-9">
+            <div className="px-5 mt-5 sm:px-9">
               <div className="rounded-3xl border border-[#2D2D2D]/10 bg-white p-5 shadow-sm">
                 <p className="text-sm font-semibold text-[#1F1F1F]">Offers</p>
                 <p className="mt-1 text-sm text-gray-600">
@@ -363,7 +363,7 @@ export default function LaunchModal(props: {
           )}
 
           {/* Choices */}
-          <div className="px-7 mt-6 sm:px-9">
+          <div className="px-5 mt-5 sm:px-9">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
                 href={content.bookCta.href}
@@ -410,7 +410,7 @@ export default function LaunchModal(props: {
           </div>
 
           {/* Footer */}
-          <div className="px-7 pb-7 sm:px-9 sm:pb-9 mt-6">
+          <div className="px-5 pb-6 sm:px-9 sm:pb-9 mt-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-end sm:ml-auto">
                 <button
