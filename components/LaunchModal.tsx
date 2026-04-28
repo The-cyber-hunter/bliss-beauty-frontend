@@ -412,22 +412,7 @@ export default function LaunchModal(props: {
           {/* Footer */}
           <div className="px-4 pb-5 sm:px-9 sm:pb-9 mt-4 sm:mt-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end sm:ml-auto">
-                <button
-                  type="button"
-                  onClick={close}
-                  className="inline-flex items-center justify-center rounded-xl border border-[#2D2D2D]/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#2D2D2D] hover:bg-gray-50 transition-colors"
-                >
-                  Not now
-                </button>
-                <a
-                  href="tel:+919939476088"
-                  onClick={close}
-                  className="inline-flex items-center justify-center rounded-xl bg-[#2D2D2D] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 transition-opacity"
-                >
-                  Call now
-                </a>
-              </div>
+              <div className="sm:ml-auto" />
             </div>
           </div>
         </div>
