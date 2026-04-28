@@ -205,6 +205,19 @@ export default function LaunchModal(props: {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    // Prevent background scroll (reduces mobile scroll lag behind modal).
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.touchAction = prevTouchAction;
+    };
+  }, [open]);
+
   const close = () => setOpen(false);
 
   if (!open) return null;
@@ -225,7 +238,8 @@ export default function LaunchModal(props: {
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/50" />
       <motion.div
-        className="relative w-full max-w-[92vw] sm:max-w-2xl overflow-hidden rounded-2xl sm:rounded-[28px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/10 max-h-[88vh] overflow-y-auto sm:max-h-none sm:overflow-y-visible"
+        className="relative w-full max-w-[92vw] sm:max-w-2xl overflow-hidden rounded-2xl sm:rounded-[28px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/10 max-h-[88vh] overflow-y-auto overscroll-contain sm:max-h-none sm:overflow-y-visible"
+        style={{ WebkitOverflowScrolling: "touch" }}
         onClick={(e) => e.stopPropagation()}
         initial={{ scale: 0.92, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
