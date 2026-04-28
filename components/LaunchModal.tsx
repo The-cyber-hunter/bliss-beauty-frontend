@@ -225,14 +225,14 @@ export default function LaunchModal(props: {
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/50" />
       <motion.div
-        className="relative w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/10 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-[92vw] sm:max-w-2xl overflow-hidden rounded-2xl sm:rounded-[28px] bg-white shadow-[0_30px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/10 max-h-[88vh] overflow-y-auto sm:max-h-none sm:overflow-y-visible"
         onClick={(e) => e.stopPropagation()}
         initial={{ scale: 0.92, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 140, damping: 18 }}
       >
         {/* Premium top glow */}
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[520px] -translate-x-1/2 -translate-y-0 rounded-full bg-[#D4AF37]/25 blur-3xl z-0" />
+        <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-[420px] -translate-x-1/2 -translate-y-0 rounded-full bg-[#D4AF37]/25 blur-3xl z-0 sm:-top-24 sm:h-48 sm:w-[520px]" />
 
         <button
           type="button"
@@ -242,14 +242,14 @@ export default function LaunchModal(props: {
             close();
           }}
           aria-label="Close"
-          className="absolute right-4 top-4 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#2D2D2D] shadow-sm ring-1 ring-black/10 backdrop-blur hover:bg-white"
+          className="absolute right-3 top-3 z-30 inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/90 text-[#2D2D2D] shadow-sm ring-1 ring-black/10 backdrop-blur hover:bg-white"
         >
           <span className="text-xl leading-none">×</span>
         </button>
 
         <div className="relative z-10">
           {/* Header */}
-          <div className="px-5 pt-6 sm:px-9 sm:pt-9">
+          <div className="px-4 pt-5 sm:px-9 sm:pt-9">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF7DB] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8A6B00] ring-1 ring-[#D4AF37]/25">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
               {content.eyebrow}
@@ -257,30 +257,30 @@ export default function LaunchModal(props: {
 
             <h2
               id={titleId}
-              className="mt-4 text-[28px] sm:text-[34px] leading-[1.1] font-semibold text-[#1F1F1F]"
+              className="mt-3 text-[22px] sm:text-[34px] leading-[1.12] font-semibold text-[#1F1F1F]"
             >
               {content.title}
             </h2>
-            <p id={descriptionId} className="mt-3 text-[14px] sm:text-[16px] text-gray-600 leading-relaxed max-w-xl">
+            <p id={descriptionId} className="mt-2.5 text-[13px] sm:text-[16px] text-gray-600 leading-relaxed max-w-xl">
               {content.description}
             </p>
           </div>
 
           {/* Deals slider */}
           {dealsLoading && (
-            <div className="px-5 mt-5 sm:px-9">
-              <div className="rounded-3xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FFF3C2] via-white to-white p-5 shadow-sm">
+            <div className="px-4 mt-4 sm:px-9 sm:mt-6">
+              <div className="rounded-2xl sm:rounded-3xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FFF3C2] via-white to-white p-4 sm:p-5 shadow-sm">
                 <p className="text-sm text-gray-700">Loading offers…</p>
               </div>
             </div>
           )}
 
           {!dealsLoading && activeDeal && (
-            <div className="px-5 mt-5 sm:px-9">
-              <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FFF3C2] via-white to-white p-5 shadow-sm">
+            <div className="px-4 mt-4 sm:px-9 sm:mt-6">
+              <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#FFF3C2] via-white to-white p-4 sm:p-5 shadow-sm">
                 <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-[#D4AF37]/20 blur-3xl" />
 
-                <div className="relative flex items-start justify-between gap-4">
+                <div className="relative flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8A6B00]">
                       {activeDeal.scope} offer
@@ -295,7 +295,7 @@ export default function LaunchModal(props: {
                   <Link
                     href={activeDeal.href}
                     onClick={close}
-                    className="shrink-0 inline-flex items-center justify-center rounded-xl bg-[#2D2D2D] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-opacity"
+                    className="shrink-0 inline-flex items-center justify-center rounded-xl bg-[#2D2D2D] px-3.5 py-2 text-sm font-semibold text-white hover:opacity-95 transition-opacity"
                   >
                     {activeDeal.cta} →
                   </Link>
@@ -345,8 +345,8 @@ export default function LaunchModal(props: {
           )}
 
           {!dealsLoading && !activeDeal && (
-            <div className="px-5 mt-5 sm:px-9">
-              <div className="rounded-3xl border border-[#2D2D2D]/10 bg-white p-5 shadow-sm">
+            <div className="px-4 mt-4 sm:px-9 sm:mt-6">
+              <div className="rounded-2xl sm:rounded-3xl border border-[#2D2D2D]/10 bg-white p-4 sm:p-5 shadow-sm">
                 <p className="text-sm font-semibold text-[#1F1F1F]">Offers</p>
                 <p className="mt-1 text-sm text-gray-600">
                   {dealsError ? dealsError : "No live offers at the moment."}
@@ -363,12 +363,12 @@ export default function LaunchModal(props: {
           )}
 
           {/* Choices */}
-          <div className="px-5 mt-5 sm:px-9">
+          <div className="px-4 mt-4 sm:px-9 sm:mt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
                 href={content.bookCta.href}
                 onClick={close}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFF3C2] via-white to-white p-5 ring-1 ring-[#D4AF37]/30 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFF3C2] via-white to-white p-4 sm:p-5 ring-1 ring-[#D4AF37]/30 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#D4AF37]/25 blur-2xl transition-opacity duration-200 opacity-70 group-hover:opacity-100" />
                 <div className="relative flex items-start gap-3">
@@ -389,7 +389,7 @@ export default function LaunchModal(props: {
               <Link
                 href={content.visitCta.href}
                 onClick={close}
-                className="group relative overflow-hidden rounded-3xl bg-white p-5 ring-1 ring-[#2D2D2D]/10 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-5 ring-1 ring-[#2D2D2D]/10 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-black/10 blur-2xl transition-opacity duration-200 opacity-40 group-hover:opacity-60" />
                 <div className="relative flex items-start gap-3">
@@ -410,20 +410,20 @@ export default function LaunchModal(props: {
           </div>
 
           {/* Footer */}
-          <div className="px-5 pb-6 sm:px-9 sm:pb-9 mt-5">
+          <div className="px-4 pb-5 sm:px-9 sm:pb-9 mt-4 sm:mt-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-end sm:ml-auto">
                 <button
                   type="button"
                   onClick={close}
-                  className="inline-flex items-center justify-center rounded-xl border border-[#2D2D2D]/10 bg-white px-5 py-2.5 text-sm font-semibold text-[#2D2D2D] hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-xl border border-[#2D2D2D]/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#2D2D2D] hover:bg-gray-50 transition-colors"
                 >
                   Not now
                 </button>
                 <a
                   href="tel:+919939476088"
                   onClick={close}
-                  className="inline-flex items-center justify-center rounded-xl bg-[#2D2D2D] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 transition-opacity"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#2D2D2D] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 transition-opacity"
                 >
                   Call now
                 </a>

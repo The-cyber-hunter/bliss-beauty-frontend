@@ -337,6 +337,18 @@ export default function Services() {
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
     useEffect(() => {
+        // Load Razorpay only on this page to avoid hydration issues on other routes.
+        const existing = document.querySelector(
+            'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+        );
+        if (existing) return;
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
+
+    useEffect(() => {
         try {
             const params = new URLSearchParams(window.location.search);
             const m = params.get("mode");
